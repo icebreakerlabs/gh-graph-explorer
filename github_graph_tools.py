@@ -6,7 +6,6 @@ from github import Github
 from github import Auth
 from datetime import datetime
 
-
 class Link:
     def clean_url(self, url):
         return url.replace('https://api.github.com/repos/', '')
@@ -149,14 +148,3 @@ class GraphBuilder():
             self.G.add_edge(*link.to_edge(), **link.attributes())
 
         return self.G
-
-if __name__ == "__main__":
-    
-    collector = GraphCollector(repository_names=['github/mail-replies'], since=datetime(2024, 4, 10))
-    team = ['geramirez', 'jlord', 'abeaumont', 'andrejusk', 'mrtazz', 'franciscoj', 'gerbenjacobs', 'jezcommits', 'jhbabon' ]
-    graph_builder = GraphBuilder(
-        collector=collector,
-        team=team
-    )
-    graph_builder.build_and_write()
-
