@@ -1,0 +1,4 @@
+*.csv
+lib/
+__pycache__
+*.html
