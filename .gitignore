@@ -2,3 +2,5 @@
 lib/
 __pycache__
 *.html
+./graph-explorer/
+.env
