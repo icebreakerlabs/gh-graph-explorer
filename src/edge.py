@@ -12,7 +12,8 @@ class Edge:
         title: Optional[str] = None,
         created_at: Optional[str] = None,
         login: Optional[str] = None,
-        url: Optional[str] = None
+        url: Optional[str] = None,
+        parent_url: Optional[str] = None
     ):
         """
         Initialize an Edge with the given properties.
@@ -23,12 +24,14 @@ class Edge:
             created_at: Creation timestamp
             login: User login associated with the edge
             url: URL of the GitHub object
+            parent_url: URL of the parent object (for comments this is the issue/discussion URL)
         """
         self.type = edge_type
         self.title = title
         self.created_at = created_at
         self.login = login
         self.url = url
+        self.parent_url = parent_url
     
     def to_row(self) -> Dict[str, Optional[str]]:
         """
@@ -42,7 +45,8 @@ class Edge:
             'title': self.title,
             'created_at': self.created_at,
             'login': self.login,
-            'url': self.url
+            'url': self.url,
+            'parent_url': self.parent_url
         }
     
     def __str__(self) -> str:
@@ -52,4 +56,4 @@ class Edge:
         Returns:
             String representation of the edge
         """
-        return f"Edge(type={self.type}, title={self.title}, created_at={self.created_at}, login={self.login}, url={self.url})"
+        return f"Edge(type={self.type}, title={self.title}, created_at={self.created_at}, login={self.login}, url={self.url}, parent_url={self.parent_url})"
