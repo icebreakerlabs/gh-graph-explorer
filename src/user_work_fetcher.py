@@ -6,9 +6,8 @@ from gql.transport.aiohttp import AIOHTTPTransport
 
 
 # Define the GraphQL query as a string
-#query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: DateTime!, $prsCreatedQuery:String!, $prContributionsQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!, $addProjectFields:Boolean = false, $projectField:String = "") {
 USER_WORK_QUERY = """
-query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: DateTime!, $prsCreatedQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!, $addProjectFields:Boolean = false, $projectField:String = "") {
+query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: DateTime!, $prsCreatedQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!) {
   repository(owner: $owner, name: $repo) {
       ...repo
   }
@@ -28,11 +27,6 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
                       project {
                         title
                       }
-                      fieldValueByName(name: $projectField) @include(if: $addProjectFields) {
-                        ... on ProjectV2ItemFieldSingleSelectValue {
-                          name
-                        }
-                      }
                     }
                   }
                 }
@@ -43,63 +37,6 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
       }
     }
   }
-  # prReviewsAndCommits:search(type: ISSUE, query: $prContributionsQuery, first: 20) {
-  #   edges {
-  #     node {
-  #       ... on PullRequest {
-  #         createdAt
-  #         title
-  #         url
-  #         author {
-  #           login
-  #         }
-  #         closingIssuesReferences(first: 10) {
-  #           edges {
-  #             node {
-  #               projectItems(first: 10) {
-  #                 edges {
-  #                   node {
-  #                     project {
-  #                       title
-  #                     }
-  #                     fieldValueByName(name: $projectField) @include(if: $addProjectFields) {
-  #                       ... on ProjectV2ItemFieldSingleSelectValue {
-  #                         name
-  #                       }
-  #                     }
-  #                   }
-  #                 }
-  #               }
-  #             }
-  #           }
-  #         }
-  #         commits(first:10) {
-  #           nodes {
-  #             commit {
-  #               url
-  #               pushedDate
-  #               author {
-  #                 user {
-  #                   login
-  #                 }
-  #               }
-  #             }
-  #           }
-  #         }
-  #         reviews(first: 10, author:$username) {
-  #           nodes {
-  #             comments(first: 20) {
-  #               nodes {
-  #                 createdAt
-  #                 url
-  #               }
-  #             }
-  #           }
-  #         }
-  #       }
-  #     }
-  #   }
-  # }
   issueComments:search(type: ISSUE, query: $issueCommentsQuery, first: 50) {
     nodes {
       ... on Issue {
@@ -168,11 +105,6 @@ fragment repo on Repository {
               project {
                 title
               }
-              fieldValueByName(name: $projectField) @include(if: $addProjectFields) {
-                ... on ProjectV2ItemFieldSingleSelectValue {
-                  name
-                }
-              }
             }
           }
         }
@@ -230,9 +162,7 @@ class UserWorkFetcher:
                  owner: str, 
                  repo: str, 
                  since_iso: str = None,
-                 days: int = 30,
-                 add_project_fields: bool = False,
-                 project_field: str = "") -> dict:
+                 days: int = 30) -> dict:
         """
         Simplified method to get user's GitHub work data.
         
@@ -243,8 +173,6 @@ class UserWorkFetcher:
             since_iso: DateTime string in ISO format for filtering by date
                       (if None, will use current date minus days)
             days: Number of days to look back if since_iso is not provided
-            add_project_fields: Whether to include project fields
-            project_field: Name of the project field to query
             
         Returns:
             The GraphQL query results as a dictionary
@@ -275,9 +203,7 @@ class UserWorkFetcher:
             pr_contributions_query=pr_contributions_query,
             issue_comments_query=issue_comments_query,
             discussions_created_query=discussions_created_query,
-            discussions_involved_query=discussions_involved_query,
-            add_project_fields=add_project_fields,
-            project_field=project_field
+            discussions_involved_query=discussions_involved_query
         )
     
     async def execute_query(self, 
@@ -289,9 +215,7 @@ class UserWorkFetcher:
                            pr_contributions_query: str,
                            issue_comments_query: str,
                            discussions_created_query: str,
-                           discussions_involved_query: str,
-                           add_project_fields: bool = False,
-                           project_field: str = "") -> dict:
+                           discussions_involved_query: str) -> dict:
         """
         Execute the getUserWork GraphQL query with the provided parameters.
         
@@ -305,8 +229,6 @@ class UserWorkFetcher:
             issue_comments_query: Search query for issues with user comments
             discussions_created_query: Search query for discussions created by user
             discussions_involved_query: Search query for discussions the user is involved in
-            add_project_fields: Whether to include project fields
-            project_field: Name of the project field to query
             
         Returns:
             The GraphQL query results as a dictionary
@@ -320,9 +242,7 @@ class UserWorkFetcher:
             "prContributionsQuery": pr_contributions_query,
             "issueCommentsQuery": issue_comments_query,
             "discussionsCreatedQuery": discussions_created_query,
-            "discussionsInvolvedQuery": discussions_involved_query,
-            "addProjectFields": add_project_fields,
-            "projectField": project_field
+            "discussionsInvolvedQuery": discussions_involved_query
         }
         
         # Execute the query

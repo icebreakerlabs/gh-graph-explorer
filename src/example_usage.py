@@ -14,19 +14,13 @@ async def main():
     owner = "geramirez"      # Repository owner
     repo = "test" # Repository name
     
-    # Optional: specify project fields
-    add_project_fields = False
-    project_field = "Status"  # Example project field name
-    
     try:
         # Execute the query with the simplified get method
         result = await query.get(
             username=username,
             owner=owner,
             repo=repo,
-            days=30,  # Look back 30 days by default
-            add_project_fields=add_project_fields,
-            project_field=project_field
+            days=30  # Look back 30 days by default
         )
         
         # Process the results
