@@ -18,21 +18,6 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
           title
           createdAt
           url
-          closingIssuesReferences(first: 10) {
-            edges {
-              node {
-                projectItems(first: 10) {
-                  edges {
-                    node {
-                      project {
-                        title
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
         }
       }
     }
@@ -99,15 +84,6 @@ fragment repo on Repository {
         createdAt
         title
         url
-        projectItems(first: 10) {
-          edges {
-            node {
-              project {
-                title
-              }
-            }
-          }
-        }
       }
     }
   }

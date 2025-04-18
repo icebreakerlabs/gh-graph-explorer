@@ -12,9 +12,7 @@ class Edge:
         title: Optional[str] = None,
         created_at: Optional[str] = None,
         login: Optional[str] = None,
-        url: Optional[str] = None,
-        repository: Optional[str] = None,
-        **kwargs
+        url: Optional[str] = None
     ):
         """
         Initialize an Edge with the given properties.
@@ -25,19 +23,12 @@ class Edge:
             created_at: Creation timestamp
             login: User login associated with the edge
             url: URL of the GitHub object
-            repository: Repository name with owner
-            **kwargs: Additional properties
         """
         self.type = edge_type
         self.title = title
         self.created_at = created_at
         self.login = login
         self.url = url
-        self.repository = repository
-        
-        # Store any additional properties
-        for key, value in kwargs.items():
-            setattr(self, key, value)
     
     def to_row(self) -> Dict[str, Optional[str]]:
         """
