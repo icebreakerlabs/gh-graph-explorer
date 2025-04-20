@@ -32,7 +32,21 @@ class Edge:
         self.login = login
         self.url = url
         self.parent_url = parent_url
+
+    def source(self) -> str:
+        """
+        Return the source of the edge, which is the login of the user who created it.
+        """
+        return self.login
     
+    def target(self) -> str:
+        """
+        Return the target of the edge, which is the URL of the GitHub object.
+        """
+        if self.parent_url: 
+            return self.parent_url
+        return self.url
+
     def to_row(self) -> Dict[str, Optional[str]]:
         """
         Return a row representation of the edge data.
@@ -41,12 +55,12 @@ class Edge:
             Dictionary containing the edge data in row format
         """
         return {
+            'source': self.source(),
+            'target': self.target(),
             'type': self.type,
             'title': self.title,
             'created_at': self.created_at,
-            'login': self.login,
             'url': self.url,
-            'parent_url': self.parent_url
         }
     
     def __str__(self) -> str:

@@ -210,11 +210,11 @@ class UserWorkFetcher:
     
     def _build_pr_contributions_query(self, username: str, since_date: datetime.datetime) -> str:
         """Build query for PRs the user contributed to but didn't author"""
-        return f"involves:{username} -author:{username} is:pr created:>={since_date.strftime('%Y-%m-%d')}"
+        return f"involves:{username} is:pr created:>={since_date.strftime('%Y-%m-%d')}" #-author:{username}
     
     def _build_issue_comments_query(self, username: str, since_date: datetime.datetime) -> str:
         """Build query for issues with user comments"""
-        return f"commenter:{username} is:issue created:>={since_date.strftime('%Y-%m-%d')}"
+        return f"commenter:{username} is:issue created:>={since_date.strftime('%Y-%m-%d')}" #-author:{username}
     
     def _build_discussions_created_query(self, username: str, since_date: datetime.datetime) -> str:
         """Build query for discussions created by the user"""
@@ -222,7 +222,7 @@ class UserWorkFetcher:
     
     def _build_discussions_involved_query(self, username: str, since_date: datetime.datetime) -> str:
         """Build query for discussions the user is involved in but didn't create"""
-        return f"involves:{username} -author:{username} is:discussion updated:>={since_date.strftime('%Y-%m-%d')}"
+        return f"involves:{username} is:discussion updated:>={since_date.strftime('%Y-%m-%d')}" #-author:{username}
     
     async def get(self, 
                  username: str, 

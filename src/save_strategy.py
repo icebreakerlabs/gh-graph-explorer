@@ -59,7 +59,7 @@ class CSVSave(SaveStrategy):
         self.filename = filename
         self.file = None
         self.writer = None
-        self.headers = ['type', 'title', 'created_at', 'login', 'url', 'parent_url']
+        self.headers = ['source', 'target', 'type', 'title', 'created_at', 'url']
         
     def _init_file(self):
         """

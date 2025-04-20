@@ -57,7 +57,7 @@ class Collector:
                     days=self.days
                 )
 
-                for edge in EdgeFactory(result).generate_edges():
+                for edge in EdgeFactory(data=result, username=repo_info['username']).generate_edges():
                     self.save_strategy.save(edge)
                 
                 results[repo_id] = {"success": True}
