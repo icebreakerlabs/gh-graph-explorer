@@ -2,12 +2,13 @@ import asyncio
 from typing import List, Dict, Any, Optional
 from user_work_fetcher import UserWorkFetcher
 from edge_factory import EdgeFactory
+from save_strategy import SaveStrategy, PrintSave
 
 class Collector:
     """
     Class to collect GitHub work data from multiple repositories for a user.
     """
-    def __init__(self, days: int = 7, github_token: Optional[str] = None):
+    def __init__(self, days: int = 7, github_token: Optional[str] = None, save_strategy: Optional[SaveStrategy] = None):
         """
         Initialize the Collector with the number of days to look back.
         
@@ -15,9 +16,11 @@ class Collector:
             days: Number of days to look back for GitHub activity (default: 7)
             github_token: GitHub personal access token with appropriate permissions.
                           If None, will try to use GITHUB_TOKEN from environment variables.
+            save_strategy: Strategy to use for saving edges. If None, uses PrintSave by default.
         """
         self.days = days
         self.fetcher = UserWorkFetcher()
+        self.save_strategy = save_strategy if save_strategy else PrintSave()
     
     async def get(self, repos: List[Dict[str, str]]) -> Dict[str, Any]:
         """
@@ -55,10 +58,15 @@ class Collector:
                 )
 
                 for edge in EdgeFactory(result).generate_edges():
-                    print(edge)
+                    self.save_strategy.save(edge)
+                
+                results[repo_id] = {"success": True}
 
             except Exception as e:
                 # Store the error for this repository but continue with others
                 results[repo_id] = {"error": str(e)}
+        
+        # Finalize the save strategy (e.g., close files)
+        self.save_strategy.finalize()
         
         return results

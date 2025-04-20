@@ -4,3 +4,4 @@ __pycache__
 *.html
 ./graph-explorer/
 .env
+.csv
