@@ -26,11 +26,11 @@ class Edge:
             url: URL of the GitHub object
             parent_url: URL of the parent object (for comments this is the issue/discussion URL)
         """
-        self.type = edge_type
-        self.title = title
-        self.created_at = created_at
+        self._type = edge_type
+        self._title = title
+        self._created_at = created_at
         self.login = login
-        self.url = url
+        self._url = url
         self.parent_url = parent_url
 
     def source(self) -> str:
@@ -45,7 +45,31 @@ class Edge:
         """
         if self.parent_url: 
             return self.parent_url
-        return self.url
+        return self._url
+    
+    def type(self) -> str:
+        """
+        Return the type of the edge.
+        """
+        return self._type
+
+    def created_at(self) -> Optional[datetime]:
+        """
+        Return the creation date of the edge.
+        """
+        return self._created_at
+    
+    def url(self) -> Optional[str]:
+        """
+        Return the URL of the edge.
+        """
+        return self._url
+    
+    def title(self) -> Optional[str]:
+        """
+        Return the title of the edge.
+        """
+        return self._title
 
     def to_row(self) -> Dict[str, Optional[str]]:
         """
@@ -57,10 +81,10 @@ class Edge:
         return {
             'source': self.source(),
             'target': self.target(),
-            'type': self.type,
-            'title': self.title,
-            'created_at': self.created_at,
-            'url': self.url,
+            'type': self.type(),
+            'title': self.title(),
+            'created_at': self.created_at(),
+            'url': self.url(),
         }
     
     def __str__(self) -> str:
@@ -70,4 +94,4 @@ class Edge:
         Returns:
             String representation of the edge
         """
-        return f"Edge(type={self.type}, title={self.title}, created_at={self.created_at}, login={self.login}, url={self.url}, parent_url={self.parent_url})"
+        return f"Edge(type={self._type}, title={self._title}, created_at={self._created_at}, login={self.login}, url={self._url}, parent_url={self.parent_url})"
