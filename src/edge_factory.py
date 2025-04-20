@@ -57,15 +57,13 @@ class EdgeFactory:
             for issue in self.data['issueComments']['nodes']:
                 if issue.get('comments', {}).get('nodes'):
                     for comment in issue['comments']['nodes']:
-                        issue_url = issue.get('url')
-                        comment_url = comment.get('url')
                         edge = Edge(
                             edge_type='issue_comment',
                             title=None,
                             created_at=comment.get('createdAt'),
-                            login=self.username,
-                            url=comment_url,
-                            parent_url=issue_url
+                            login=comment.get('author'),
+                            url=comment.get('url'),
+                            parent_url=issue.get('url')
                         )
                         yield edge
         
@@ -88,14 +86,12 @@ class EdgeFactory:
             for discussion in self.data['discussionComments']['nodes']:
                 if discussion.get('comments', {}).get('nodes'):
                     for comment in discussion['comments']['nodes']:
-                        discussion_url = discussion.get('url')
-                        comment_url = comment.get('url')
                         edge = Edge(
                             edge_type='discussion_comment',
                             created_at=comment.get('createdAt'),
-                            login=self.username,
-                            url=comment_url,
+                            login=comment.get('author'),
+                            url=comment.get('url'),
                             title=None,
-                            parent_url=discussion_url
+                            parent_url=discussion.get('url')
                         )
                         yield edge

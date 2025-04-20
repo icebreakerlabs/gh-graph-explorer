@@ -15,13 +15,7 @@ async def main():
             "username": "geramirez",
             "owner": "geramirez",
             "repo": "test"
-        },
-        {
-            "username": "geramirez",
-            "owner": "geramirez",
-            "repo": "github-work"  # You can add multiple repositories
         }
-        # Add more repository dictionaries as needed
     ]
     
     try:

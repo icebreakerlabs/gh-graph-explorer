@@ -53,6 +53,7 @@ class Collector:
                     repo=repo_info['repo'],
                     days=self.days
                 )
+
                 for edge in EdgeFactory(result).generate_edges():
                     print(edge)
 

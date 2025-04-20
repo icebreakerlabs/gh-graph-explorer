@@ -7,7 +7,7 @@ from gql.transport.aiohttp import AIOHTTPTransport
 
 # Define the GraphQL query as a string
 USER_WORK_QUERY = """
-query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: DateTime!, $prsCreatedQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!) {
+query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: DateTime!, $prsCreatedQuery:String!, $prContributionsQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!, $addProjectFields:Boolean = false, $projectField:String = "") {
   repository(owner: $owner, name: $repo) {
       ...repo
   }
@@ -18,6 +18,83 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
           title
           createdAt
           url
+          closingIssuesReferences(first: 10) {
+            edges {
+              node {
+                projectItems(first: 10) {
+                  edges {
+                    node {
+                      project {
+                        title
+                      }
+                      fieldValueByName(name: $projectField) @include(if: $addProjectFields) {
+                        ... on ProjectV2ItemFieldSingleSelectValue {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  prReviewsAndCommits:search(type: ISSUE, query: $prContributionsQuery, first: 20) {
+    edges {
+      node {
+        ... on PullRequest {
+          createdAt
+          title
+          url
+          author {
+            login
+          }
+          closingIssuesReferences(first: 10) {
+            edges {
+              node {
+                projectItems(first: 10) {
+                  edges {
+                    node {
+                      project {
+                        title
+                      }
+                      fieldValueByName(name: $projectField) @include(if: $addProjectFields) {
+                        ... on ProjectV2ItemFieldSingleSelectValue {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          commits(first:10) {
+            nodes {
+              commit {
+                url
+                pushedDate
+                author {
+                  user {
+                    login
+                  }
+                }
+              }
+            }
+          }
+          reviews(first: 10, author:$username) {
+            nodes {
+              comments(first: 20) {
+                nodes {
+                  createdAt
+                  url
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -84,6 +161,20 @@ fragment repo on Repository {
         createdAt
         title
         url
+        projectItems(first: 10) {
+          edges {
+            node {
+              project {
+                title
+              }
+              fieldValueByName(name: $projectField) @include(if: $addProjectFields) {
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -131,7 +222,7 @@ class UserWorkFetcher:
     
     def _build_discussions_involved_query(self, username: str, since_date: datetime.datetime) -> str:
         """Build query for discussions the user is involved in but didn't create"""
-        return f"involves:{username} -author:{username} is:discussion created:>={since_date.strftime('%Y-%m-%d')}"
+        return f"involves:{username} -author:{username} is:discussion updated:>={since_date.strftime('%Y-%m-%d')}"
     
     async def get(self, 
                  username: str, 
@@ -163,11 +254,12 @@ class UserWorkFetcher:
             since_date = datetime.datetime.fromisoformat(since_iso.replace('Z', '+00:00'))
         
         # Build all query strings
-        prs_created_query = self._build_prs_created_query(username, since_date)
-        pr_contributions_query = self._build_pr_contributions_query(username, since_date)
-        issue_comments_query = self._build_issue_comments_query(username, since_date)
-        discussions_created_query = self._build_discussions_created_query(username, since_date)
-        discussions_involved_query = self._build_discussions_involved_query(username, since_date)
+        name_with_owner_query = f"repo:{owner}/{repo} "
+        prs_created_query = name_with_owner_query + self._build_prs_created_query(username, since_date)
+        pr_contributions_query = name_with_owner_query + self._build_pr_contributions_query(username, since_date)
+        issue_comments_query = name_with_owner_query + self._build_issue_comments_query(username, since_date)
+        discussions_created_query = name_with_owner_query + self._build_discussions_created_query(username, since_date)
+        discussions_involved_query = name_with_owner_query + self._build_discussions_involved_query(username, since_date)
         
         # Execute the query with built parameters
         return await self.execute_query(
@@ -215,7 +307,7 @@ class UserWorkFetcher:
             "repo": repo,
             "sinceIso": since_iso,
             "prsCreatedQuery": prs_created_query,
-            "prContributionsQuery": pr_contributions_query,
+            "prContributionsQuery": pr_contributions_query,  # Add missing parameter
             "issueCommentsQuery": issue_comments_query,
             "discussionsCreatedQuery": discussions_created_query,
             "discussionsInvolvedQuery": discussions_involved_query
