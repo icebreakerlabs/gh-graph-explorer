@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional
 from neo4j import GraphDatabase
-from .loader import Loader
+from .base import Loader
 
 
 class Neo4jLoader(Loader):

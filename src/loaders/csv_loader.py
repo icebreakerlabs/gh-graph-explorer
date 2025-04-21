@@ -1,7 +1,7 @@
 import csv
 from typing import Dict, Any, List, Optional
 import os
-from .loader import Loader
+from .base import Loader
 
 
 class CSVLoader(Loader):

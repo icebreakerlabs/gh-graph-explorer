@@ -6,8 +6,7 @@ import json
 from src.collector import Collector
 from src.save_strategies import PrintSave, CSVSave, Neo4jSave
 from src.graph_analyzer import GraphAnalyzer
-from src.csv_loader import CSVLoader
-from src.neo4j_loader import Neo4jLoader
+from src.loaders import CSVLoader, Neo4jLoader
 
 def parse_arguments():
     """
