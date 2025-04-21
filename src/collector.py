@@ -1,8 +1,8 @@
 import asyncio
 from typing import List, Dict, Any, Optional
-from user_work_fetcher import UserWorkFetcher
-from edge_factory import EdgeFactory
-from save_strategy import SaveStrategy, PrintSave
+from .user_work_fetcher import UserWorkFetcher
+from .edge_factory import EdgeFactory
+from .save_strategy import SaveStrategy, PrintSave
 
 class Collector:
     """

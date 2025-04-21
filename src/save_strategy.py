@@ -3,7 +3,10 @@ import csv
 import os
 from datetime import datetime
 from typing import List
-from edge import Edge
+from .edge import Edge
+
+# Import Neo4j driver
+from neo4j import GraphDatabase
 
 class SaveStrategy(ABC):
     """
@@ -92,3 +95,87 @@ class CSVSave(SaveStrategy):
         """
         if self.file:
             self.file.close()
+
+
+class Neo4jSave(SaveStrategy):
+    """
+    Strategy that saves edges to a Neo4j database
+    """
+    def __init__(self, uri: str = "bolt://neo4j:7687", 
+                 username: str = "neo4j", 
+                 password: str = "password"):
+        """
+        Initialize Neo4j save strategy with connection details
+        
+        Args:
+            uri: URI for the Neo4j database
+            username: Username for Neo4j authentication
+            password: Password for Neo4j authentication
+        """
+        self.uri = uri
+        self.username = username
+        self.password = password
+        self.driver = None
+        self._connect()
+        
+    def _connect(self):
+        """
+        Establish connection to Neo4j database
+        """
+        try:
+            self.driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
+        except Exception as e:
+            print(f"Error connecting to Neo4j: {e}")
+            raise
+            
+    def save(self, edge: Edge) -> None:
+        """
+        Save an edge to Neo4j database
+        
+        Args:
+            edge: The Edge object to save
+        """
+        if not self.driver:
+            self._connect()
+            
+        with self.driver.session() as session:
+            # Create a Cypher query to save the edge
+            # This will create or match the source and target nodes and create a relationship between them
+            result = session.execute_write(self._create_edge, edge)
+    
+    def _create_edge(self, tx, edge: Edge) -> None:
+        """
+        Create an edge in the Neo4j database using a transaction
+        
+        Args:
+            tx: Neo4j transaction
+            edge: The Edge object to save
+        """
+        # Create a query that:
+        # 1. Creates or matches source node (user)
+        # 2. Creates or matches target node (GitHub object)
+        # 3. Creates a relationship between them with the edge type and properties
+        properties = edge.to_row()
+        query = (
+            "MERGE (source:User {name: $source_name}) "
+            "MERGE (target:GitHubObject {url: $target_url}) "
+            "CREATE (source)-[r:" + properties['type'].upper().replace(" ", "_") + " {" +
+            "title: $title, " +
+            "created_at: $created_at, " +
+            "url: $url" +
+            "}]->(target)"
+        )
+        
+        tx.run(query, 
+               source_name=edge.source(), 
+               target_url=edge.target(), 
+               title=edge.title(),
+               created_at=edge.created_at(),
+               url=edge.url())
+    
+    def finalize(self) -> None:
+        """
+        Close the Neo4j connection
+        """
+        if self.driver:
+            self.driver.close()

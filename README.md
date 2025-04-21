@@ -12,3 +12,7 @@
 1. jupyter lab
 1. load the csv file that was downloaded before
 
+
+python main.py --repos data/repos.json --days 30 --output print
+python main.py --repos data/repos.json --days 30 --output csv --output-file github_data.csv
+
