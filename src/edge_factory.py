@@ -78,7 +78,7 @@ class EdgeFactory:
                         edge_type='pr_comment',
                         title=None,
                         created_at=comment.get('createdAt'),
-                        login=comment.get('author', {}).get('login'),
+                        login=self.username,
                         url=comment.get('url'),
                         parent_url=pr_url
                     )
@@ -90,7 +90,7 @@ class EdgeFactory:
                         edge_type='pr_review',
                         title=None,
                         created_at=review.get('createdAt'),
-                        login=review.get('author', {}).get('login'),
+                        login=self.username,
                         url=review.get('url'),
                         parent_url=pr_url
                     )

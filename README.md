@@ -16,27 +16,27 @@
 ### Collecting Data (Same as Before)
 ```
 # Print output
-python main.py collect --repos data/repos.json --days 30 --output print
+uv run main.py collect --repos data/repos.json --days 30 --output print
 
 # CSV output
-python main.py collect --repos data/repos.json --days 30 --output csv --output-file github_data.csv
+uv run main.py collect --repos data/repos.json --days 30 --output csv --output-file github_data.csv
 
 # Neo4j output
-python main.py collect --repos data/repos.json --output neo4j --neo4j-uri bolt://localhost:7687
+uv run main.py collect --repos data/fulldata.json --days 30 --output neo4j --neo4j-uri bolt://localhost:7687
 ```
 
 ### Analyzing Data (New Functionality)
 ```
 # Analyze from CSV file
-python main.py analyze --source csv --file github_data.csv
+uv run main.py analyze --source csv --file github_data.csv
 
 # Analyze from Neo4j
-python main.py analyze --source neo4j --neo4j-uri bolt://localhost:7687
+uv run main.py analyze --source neo4j --neo4j-uri bolt://localhost:7687
 ```
 
 The analyzer will use the appropriate loader (CSVLoader or Neo4jLoader) to load the data, create a networkx DiGraph, and then use the GraphAnalyzer's analyze method to display information about the graph, such as the number of nodes and edges.
 
 If you want to customize the Neo4j query for analysis, you can also use the --neo4j-query parameter:
 ```
-python main.py analyze --source neo4j --neo4j-query "MATCH (source)-[rel]->(target) RETURN source.name AS source, target.name AS target, type(rel) AS type"
+uv run main.py analyze --source neo4j --neo4j-query "MATCH (source)-[rel]->(target) RETURN source.name AS source, target.name AS target, type(rel) AS type"
 ```

@@ -8,3 +8,4 @@ __pycache__
 old/*
 .DS_Store
 .ipynb_checkpoints/
+data/fulldata.json
