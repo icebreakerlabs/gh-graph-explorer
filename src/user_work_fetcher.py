@@ -18,26 +18,6 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
           title
           createdAt
           url
-          closingIssuesReferences(first: 10) {
-            edges {
-              node {
-                projectItems(first: 10) {
-                  edges {
-                    node {
-                      project {
-                        title
-                      }
-                      fieldValueByName(name: $projectField) @include(if: $addProjectFields) {
-                        ... on ProjectV2ItemFieldSingleSelectValue {
-                          name
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
         }
       }
     }
@@ -52,37 +32,13 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
           author {
             login
           }
-          closingIssuesReferences(first: 10) {
-            edges {
-              node {
-                projectItems(first: 10) {
-                  edges {
-                    node {
-                      project {
-                        title
-                      }
-                      fieldValueByName(name: $projectField) @include(if: $addProjectFields) {
-                        ... on ProjectV2ItemFieldSingleSelectValue {
-                          name
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          commits(first:10) {
+          comments(last: 10) {
             nodes {
-              commit {
-                url
-                pushedDate
-                author {
-                  user {
-                    login
-                  }
-                }
+              author {
+                login
               }
+              createdAt
+              url
             }
           }
           reviews(first: 10, author:$username) {

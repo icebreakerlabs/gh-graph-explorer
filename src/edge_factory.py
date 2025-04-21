@@ -68,38 +68,35 @@ class EdgeFactory:
                         yield edge
         
         # Process pull request reviews and commits
-        if self.data.get('prReviewsAndCommits', {}).get('edges'):
-            for pr_edge in self.data['prsCreated']['edges']:
-                pr = pr_edge.get('node', {})
-                pr_url = pr.get('url')
-
-                # Process commits in the pull request
-                if pr.get('commits', {}).get('nodes'):
-                    for commit_node in pr['commits']['nodes']:
-                        commit = commit_node.get('commit', {})
-                        edge = Edge(
-                            edge_type='pr_commit',
-                            title=None,
-                            created_at=commit.get('pushedDate'),
-                            login=commit.get('author', {}).get('user', {}).get('login'),
-                            url=commit.get('url'),
-                            parent_url=pr_url
-                        )
-                        yield edge
-
-                # Process reviews in the pull request
-                if pr.get('reviews', {}).get('nodes'):
-                    for review in pr['reviews']['nodes']:
-                        edge = Edge(
-                            edge_type='pr_review',
-                            title=None,
-                            created_at=review.get('createdAt'),
-                            login=review.get('author', {}).get('login'),
-                            url=review.get('url'),
-                            parent_url=pr_url
-                        )
-                        yield edge
+        for pr_edge in self.data.get('prReviewsAndCommits', {}).get('edges', []):
+            pr = pr_edge.get('node', {})
+            pr_url = pr.get('url')
             
+            # Process comments on the pull request
+            if pr.get('comments', {}).get('nodes'):
+                for comment in pr['comments']['nodes']:
+                    yield Edge(
+                        edge_type='pr_comment',
+                        title=None,
+                        created_at=comment.get('createdAt'),
+                        login=comment.get('author', {}).get('login'),
+                        url=comment.get('url'),
+                        parent_url=pr_url
+                    )
+                
+            # Process reviews in the pull request
+            if pr.get('reviews', {}).get('nodes'):
+                for review in pr['reviews']['nodes']:
+                    edge = Edge(
+                        edge_type='pr_review',
+                        title=None,
+                        created_at=review.get('createdAt'),
+                        login=review.get('author', {}).get('login'),
+                        url=review.get('url'),
+                        parent_url=pr_url
+                    )
+                    yield edge
+        
 
         # Process discussions created
         if self.data.get('discussionsCreated', {}).get('nodes'):
