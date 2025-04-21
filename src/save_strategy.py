@@ -149,28 +149,33 @@ class Neo4jSave(SaveStrategy):
         Args:
             tx: Neo4j transaction
             edge: The Edge object to save
+            
+        Returns:
+            The number of edges created (0 if edge already existed)
         """
-        # Create a query that:
-        # 1. Creates or matches source node (user)
-        # 2. Creates or matches target node (GitHub object)
-        # 3. Creates a relationship between them with the edge type and properties
+        # Create a query using MERGE for both nodes and the relationship
+        # This ensures that duplicates are not created
         properties = edge.to_row()
+        relationship_type = properties['type'].upper().replace(" ", "_")
+        
         query = (
             "MERGE (source:User {name: $source_name}) "
             "MERGE (target:GitHubObject {url: $target_url}) "
-            "CREATE (source)-[r:" + properties['type'].upper().replace(" ", "_") + " {" +
-            "title: $title, " +
-            "created_at: $created_at, " +
-            "url: $url" +
-            "}]->(target)"
+            f"MERGE (source)-[r:{relationship_type} {{url: $url}}]->(target) "
+            "ON CREATE SET r.title = $title, "
+            "r.created_at = $created_at "
+            "RETURN count(r) as edges_count"
         )
         
-        tx.run(query, 
+        result = tx.run(query, 
                source_name=edge.source(), 
                target_url=edge.target(), 
                title=edge.title(),
                created_at=edge.created_at(),
                url=edge.url())
+        
+        summary = result.consume()
+        return summary.counters.relationships_created
     
     def finalize(self) -> None:
         """

@@ -1,5 +1,5 @@
-from typing import Dict, Any, Generator, Optional, List
-from .edge import Edge
+from typing import Dict, Any, Generator
+from edge import Edge
 
 class EdgeFactory:
     """
