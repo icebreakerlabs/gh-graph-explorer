@@ -166,7 +166,6 @@ class Neo4jSave(SaveStrategy):
             "r.created_at = $created_at "
             "RETURN count(r) as edges_count"
         )
-        
         result = tx.run(query, 
                source_name=edge.source(), 
                target_url=edge.target(), 

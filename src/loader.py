@@ -39,7 +39,6 @@ class Loader(ABC):
             source = rel.get('source')
             target = rel.get('target')
             
-            print(source, target)
             # Skip if source or target is missing
             if not source or not target:
                 continue

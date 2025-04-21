@@ -1,18 +1,18 @@
 version: '3'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-password}
-    volumes:
-      - ./data:/app/data
-    depends_on:
-      - neo4j
-    command: --repos /app/data/repos.json --output neo4j --neo4j-uri bolt://neo4j:7687
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - GITHUB_TOKEN=${GITHUB_TOKEN}
+  #     - NEO4J_PASSWORD=${NEO4J_PASSWORD:-password}
+  #   volumes:
+  #     - ./data:/app/data
+  #   depends_on:
+  #     - neo4j
+  #   command: --repos /app/data/repos.json --output neo4j --neo4j-uri bolt://neo4j:7687
 
   neo4j:
     image: neo4j:5.18.0

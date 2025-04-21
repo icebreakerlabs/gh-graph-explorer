@@ -53,19 +53,18 @@ class EdgeFactory:
                 yield edge
         
         # Process issue comments
-        if self.data.get('issueComments', {}).get('nodes'):
-            for issue in self.data['issueComments']['nodes']:
-                if issue.get('comments', {}).get('nodes'):
-                    for comment in issue['comments']['nodes']:
-                        edge = Edge(
-                            edge_type='issue_comment',
-                            title=None,
-                            created_at=comment.get('createdAt'),
-                            login=comment.get('author', {}).get('login'),
-                            url=comment.get('url'),
-                            parent_url=issue.get('url')
-                        )
-                        yield edge
+        for issue in self.data.get('issueComments', {}).get('nodes', []):
+            if issue.get('comments', {}).get('nodes'):
+                for comment in issue['comments']['nodes']:
+                    edge = Edge(
+                        edge_type='issue_comment',
+                        title=None,
+                        created_at=comment.get('createdAt'),
+                        login=comment.get('author', {}).get('login'),
+                        url=comment.get('url'),
+                        parent_url=issue.get('url')
+                    )
+                    yield edge
         
         # Process pull request reviews and commits
         for pr_edge in self.data.get('prReviewsAndCommits', {}).get('edges', []):
