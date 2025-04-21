@@ -5,3 +5,6 @@ __pycache__
 ./graph-explorer/
 .env
 .csv
+old/*
+.DS_Store
+.ipynb_checkpoints/
