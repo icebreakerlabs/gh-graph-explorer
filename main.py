@@ -5,26 +5,50 @@ from typing import List, Dict
 import json
 from src.collector import Collector
 from src.save_strategy import PrintSave, CSVSave, Neo4jSave
+from src.graph_analyzer import GraphAnalyzer
+from src.csv_loader import CSVLoader
+from src.neo4j_loader import Neo4jLoader
 
 def parse_arguments():
     """
     Parse command line arguments for the GitHub graph explorer
     """
     parser = argparse.ArgumentParser(description='GitHub Work Graph Explorer')
-    parser.add_argument('--days', type=int, default=7,
+    
+    # Add mode subcommands
+    subparsers = parser.add_subparsers(dest='mode', help='Operation mode')
+    
+    # Collection mode parser
+    collect_parser = subparsers.add_parser('collect', help='Collect GitHub data')
+    collect_parser.add_argument('--days', type=int, default=7,
                         help='Number of days to look back (default: 7)')
-    parser.add_argument('--repos', type=str, required=True,
+    collect_parser.add_argument('--repos', type=str, required=True,
                         help='JSON string or file path with repositories information')
-    parser.add_argument('--output', type=str, choices=['print', 'csv', 'neo4j'], default='print',
+    collect_parser.add_argument('--output', type=str, choices=['print', 'csv', 'neo4j'], default='print',
                         help='Output strategy (print, csv, neo4j). Default: print')
-    parser.add_argument('--output-file', type=str,
+    collect_parser.add_argument('--output-file', type=str,
                         help='Output file path for CSV strategy')
-    parser.add_argument('--neo4j-uri', type=str, default='bolt://neo4j:7687',
+    collect_parser.add_argument('--neo4j-uri', type=str, default='bolt://neo4j:7687',
                         help='Neo4j URI (default: bolt://neo4j:7687)')
-    parser.add_argument('--neo4j-user', type=str, default='neo4j',
+    collect_parser.add_argument('--neo4j-user', type=str, default='neo4j',
                         help='Neo4j username (default: neo4j)')
-    parser.add_argument('--neo4j-password', type=str, default=os.environ.get('NEO4J_PASSWORD', 'password'),
+    collect_parser.add_argument('--neo4j-password', type=str, default=os.environ.get('NEO4J_PASSWORD', 'password'),
                         help='Neo4j password (default from NEO4J_PASSWORD env var, or "password")')
+    
+    # Analysis mode parser
+    analyze_parser = subparsers.add_parser('analyze', help='Analyze GitHub data graph')
+    analyze_parser.add_argument('--source', type=str, choices=['csv', 'neo4j'], required=True,
+                        help='Data source for analysis (csv or neo4j)')
+    analyze_parser.add_argument('--file', type=str, 
+                        help='CSV file path for analysis when source is csv')
+    analyze_parser.add_argument('--neo4j-uri', type=str, default='bolt://neo4j:7687',
+                        help='Neo4j URI (default: bolt://neo4j:7687)')
+    analyze_parser.add_argument('--neo4j-user', type=str, default='neo4j',
+                        help='Neo4j username (default: neo4j)')
+    analyze_parser.add_argument('--neo4j-password', type=str, default=os.environ.get('NEO4J_PASSWORD', 'password'),
+                        help='Neo4j password (default from NEO4J_PASSWORD env var, or "password")')
+    analyze_parser.add_argument('--neo4j-query', type=str,
+                        help='Custom Neo4j query for analysis')
                         
     return parser.parse_args()
 
@@ -61,12 +85,10 @@ def parse_repos_config(repos_config: str) -> List[Dict[str, str]]:
             
     return repos
 
-async def main():
+async def collect_data(args):
     """
-    Main function for the GitHub graph explorer
+    Function for collecting GitHub data
     """
-    args = parse_arguments()
-    
     # Parse repositories configuration
     repos = parse_repos_config(args.repos)
     
@@ -100,6 +122,45 @@ async def main():
         print(f"Encountered errors in {len(errors)} repositories:")
         for repo, error in errors.items():
             print(f"  {repo}: {error}")
+
+def analyze_data(args):
+    """
+    Function for analyzing GitHub data graph
+    """
+    # Create loader based on source
+    if args.source == 'csv':
+        if not args.file:
+            raise ValueError("--file must be specified when source is csv")
+        loader = CSVLoader(
+            filepath=args.file
+        )
+    else:  # neo4j
+        loader = Neo4jLoader(
+            uri=args.neo4j_uri,
+            username=args.neo4j_user,
+            password=args.neo4j_password,
+            query=args.neo4j_query
+        )
+    
+    # Create and run analyzer
+    analyzer = GraphAnalyzer(load_strategy=loader)
+    analyzer.create().analyze()
+
+async def main():
+    """
+    Main function for the GitHub graph explorer
+    """
+    args = parse_arguments()
+    
+    if args.mode == 'collect':
+        await collect_data(args)
+    elif args.mode == 'analyze':
+        analyze_data(args)
+    else:
+        print("No mode specified. Use 'collect' or 'analyze'")
+        return 1
+    
+    return 0
 
 
 if __name__ == "__main__":

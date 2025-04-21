@@ -172,13 +172,17 @@ dependencies = [
     { name = "aiohttp" },
     { name = "gql" },
     { name = "neo4j" },
+    { name = "neo4j-driver" },
+    { name = "networkx" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.11.16" },
     { name = "gql", specifier = ">=3.5.2" },
-    { name = "neo4j", specifier = ">=5.28.1" },
+    { name = "neo4j", specifier = ">=5.18.0" },
+    { name = "neo4j-driver" },
+    { name = "networkx", specifier = ">=3.1.0" },
 ]
 
 [[package]]
@@ -284,6 +288,27 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/4b/20/733dac16f7cedc80b23093415822c9763302519cba0e7c8bcdb5c01fc512/neo4j-5.28.1.tar.gz", hash = "sha256:ae8e37a1d895099062c75bc359b2cce62099baac7be768d0eba7180c1298e214", size = 231094 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6a/57/94225fe5e9dabdc0ff60c88cbfcedf11277f4b34e7ab1373d3e62dbdd207/neo4j-5.28.1-py3-none-any.whl", hash = "sha256:6755ef9e5f4e14b403aef1138fb6315b120631a0075c138b5ddb2a06b87b09fd", size = 312258 },
+]
+
+[[package]]
+name = "neo4j-driver"
+version = "5.28.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytz" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ce/bb/c3bc07953c3ae1fe37526ffb727e4dc3f1129aac818abe9923d23c67be88/neo4j_driver-5.28.1.tar.gz", hash = "sha256:1fae3968ac0546df1ad90575bc0531a0dfac3db140b9cb03349218229ea157e2", size = 231246 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5a/4e/2367baab52e0d3ac05c07092d196bbc917cdd4948ab5fedd17ac60d5189c/neo4j_driver-5.28.1-py3-none-any.whl", hash = "sha256:531a9f3e34a2a560fe77779477953169eef6dbd1740008c0a04cc459ba53734a", size = 312482 },
+]
+
+[[package]]
+name = "networkx"
+version = "3.4.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fd/1d/06475e1cd5264c0b870ea2cc6fdb3e37177c1e565c43f56ff17a10e3937f/networkx-3.4.2.tar.gz", hash = "sha256:307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1", size = 2151368 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b9/54/dd730b32ea14ea797530a4479b2ed46a6fb250f682a9cfb997e968bf0261/networkx-3.4.2-py3-none-any.whl", hash = "sha256:df5d4365b724cf81b8c6a7312509d0c22386097011ad1abe274afd5e9d3bbc5f", size = 1723263 },
 ]
 
 [[package]]
