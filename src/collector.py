@@ -1,4 +1,3 @@
-import asyncio
 from typing import List, Dict, Any, Optional
 from .user_work_fetcher import UserWorkFetcher
 from .edge_factory import EdgeFactory

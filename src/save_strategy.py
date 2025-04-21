@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 import csv
 import os
 from datetime import datetime
-from typing import List
 from .edge import Edge
 
 # Import Neo4j driver
