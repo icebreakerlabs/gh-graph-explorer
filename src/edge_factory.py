@@ -71,11 +71,11 @@ class EdgeFactory:
             pr = pr_edge.get('node', {})
             pr_url = pr.get('url')
             
-            # Process comments on the pull request
-            if pr.get('comments', {}).get('nodes'):
-                for comment in pr['comments']['nodes']:
+            # Process reviews in the pull request
+            for review in pr.get('reviews', {}).get('nodes', []):
+                for comment in review.get('comments', {}).get('nodes', []):
                     yield Edge(
-                        edge_type='pr_comment',
+                        edge_type='pr_review',
                         title=None,
                         created_at=comment.get('createdAt'),
                         login=self.username,
