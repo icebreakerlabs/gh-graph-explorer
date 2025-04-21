@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 from .user_work_fetcher import UserWorkFetcher
 from .edge_factory import EdgeFactory
-from .save_strategy import SaveStrategy, PrintSave
+from .save_strategies import SaveStrategy, PrintSave
 
 class Collector:
     """
