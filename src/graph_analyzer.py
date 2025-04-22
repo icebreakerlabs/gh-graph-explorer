@@ -1,6 +1,6 @@
 import networkx as nx
 from typing import Optional
-from .loaders import Loader
+from .load_strategies import Loader
 
 class GraphAnalyzer:
     """

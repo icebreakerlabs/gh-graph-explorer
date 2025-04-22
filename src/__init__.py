@@ -1,4 +1,4 @@
-from .loaders import Loader, CSVLoader, Neo4jLoader
+from .load_strategies import Loader, CSVLoader, Neo4jLoader
 from .graph_analyzer import GraphAnalyzer
 from .edge import Edge
 from .edge_factory import EdgeFactory
