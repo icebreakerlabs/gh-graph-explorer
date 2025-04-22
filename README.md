@@ -22,7 +22,7 @@ uv run main.py collect --repos data/repos.json --days 30 --output print
 uv run main.py collect --repos data/repos.json --days 30 --output csv --output-file github_data.csv
 
 # Neo4j output
-uv run main.py collect --repos data/fulldata.json --days 30 --output neo4j --neo4j-uri bolt://localhost:7687
+uv run main.py collect --repos data/repos.json --days 30 --output neo4j --neo4j-uri bolt://localhost:7687
 ```
 
 ### Analyzing Data (New Functionality)

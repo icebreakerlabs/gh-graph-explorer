@@ -73,29 +73,14 @@ class EdgeFactory:
             
             # Process reviews in the pull request
             for review in pr.get('reviews', {}).get('nodes', []):
-                for comment in review.get('comments', {}).get('nodes', []):
-                    yield Edge(
-                        edge_type='pr_review',
-                        title=None,
-                        created_at=comment.get('createdAt'),
-                        login=self.username,
-                        url=comment.get('url'),
-                        parent_url=pr_url
-                    )
-                
-            # Process reviews in the pull request
-            if pr.get('reviews', {}).get('nodes'):
-                for review in pr['reviews']['nodes']:
-                    edge = Edge(
-                        edge_type='pr_review',
-                        title=None,
-                        created_at=review.get('createdAt'),
-                        login=self.username,
-                        url=review.get('url'),
-                        parent_url=pr_url
-                    )
-                    yield edge
-        
+                yield Edge(
+                    edge_type='pr_review_' + review.get('state', '').lower(),
+                    title=None,
+                    created_at=review.get('createdAt'),
+                    login=self.username,
+                    url=review.get('url'),
+                    parent_url=pr_url
+                )
 
         # Process discussions created
         if self.data.get('discussionsCreated', {}).get('nodes'):
