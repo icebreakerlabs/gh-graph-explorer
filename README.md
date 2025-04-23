@@ -38,5 +38,5 @@ The analyzer will use the appropriate loader (CSVLoader or Neo4jLoader) to load 
 
 If you want to customize the Neo4j query for analysis, you can also use the --neo4j-query parameter:
 ```
-uv run main.py analyze --source neo4j --neo4j-query "MATCH (source)-[rel]->(target) RETURN source.name AS source, target.name AS target, type(rel) AS type"
+uv run main.py analyze --source neo4j --neo4j-query "MATCH (source)-[rel]->(target)  WHERE rel.created_at > \"2025-04-01\" RETURN source.name AS source, target.url AS target, type(rel) AS type, properties(rel) AS properties" --neo4j-uri bolt://localhost:7687
 ```
