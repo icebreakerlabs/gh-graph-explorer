@@ -15,4 +15,4 @@ COPY . /app/
 ENV PYTHONUNBUFFERED=1
 
 # Command to run when container starts
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python", "mcp_server.py"]

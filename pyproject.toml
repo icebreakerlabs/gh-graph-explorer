@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aiohttp>=3.11.16",
+    "fastmcp>=2.2.1",
     "gql>=3.5.2",
     "neo4j>=5.18.0",
     "neo4j-driver",
