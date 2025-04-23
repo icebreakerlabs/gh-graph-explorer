@@ -62,9 +62,9 @@ class GraphAnalyzer:
         """
         return not self._is_username(node)
         
-    def analyze(self) -> None:
+    def analyze(self) -> Dict[str, Any]:
         """
-        Print analysis information about the graph including:
+        Analyze the graph and return structured information including:
         - Basic stats (nodes, edges)
         - Degree statistics
         - Centrality measures 
@@ -74,44 +74,31 @@ class GraphAnalyzer:
         - GitHub-specific analysis
         - Connectivity analysis
         - Disconnected nodes analysis
+        
+        Returns:
+            Dictionary containing the analysis results
         """
         if self.graph is None:
-            print("No graph has been created yet. Call create() first.")
-            return
+            return {"error": "No graph has been created yet. Call create() first."}
             
         num_nodes = self.graph.number_of_nodes()
         num_edges = self.graph.number_of_edges()
         
-        print(f"GitHub Network Analysis:")
-        print(f"Number of nodes: {num_nodes}")
-        print(f"Number of edges: {num_edges}")
-        
         # Skip analysis for empty graphs
         if num_nodes == 0:
-            print("Graph is empty. No further analysis available.")
-            return
+            return {"message": "Graph is empty. No further analysis available."}
         
         # Count users vs resources
         users = [n for n in self.graph.nodes() if self._is_username(n)]
         resources = [n for n in self.graph.nodes() if self._is_resource(n)]
-        
-        print(f"\nNode Types:")
-        print(f"Users: {len(users)} ({len(users)/num_nodes*100:.1f}%)")
-        print(f"Resources: {len(resources)} ({len(resources)/num_nodes*100:.1f}%)")
             
         # Basic degree statistics
         degrees = [d for _, d in self.graph.degree()]
-        avg_degree = sum(degrees) / num_nodes
+        avg_degree = sum(degrees) / num_nodes if degrees else 0
         max_degree = max(degrees) if degrees else 0
         min_degree = min(degrees) if degrees else 0
         
-        print("\nDegree Statistics:")
-        print(f"Average degree: {avg_degree:.2f}")
-        print(f"Maximum degree: {max_degree}")
-        print(f"Minimum degree: {min_degree}")
-        
         # Centrality measures
-        print("\nCentrality Measures:")
         
         # Degree centrality - fraction of nodes a node is connected to
         degree_centrality = nx.degree_centrality(self.graph)
@@ -121,80 +108,56 @@ class GraphAnalyzer:
                               if self._is_username(n)]
         top_users_by_degree = sorted(top_users_by_degree, key=lambda x: x[1], reverse=True)[:5]
         
-        print("Top users by degree centrality:")
-        for node, centrality in top_users_by_degree:
-            print(f"  User: {node}, Centrality: {centrality:.4f}")
-        
         # Get top resources by centrality
         top_resources_by_degree = [(n, c) for n, c in degree_centrality.items() 
                                   if self._is_resource(n)]
         top_resources_by_degree = sorted(top_resources_by_degree, key=lambda x: x[1], reverse=True)[:5]
         
-        print("\nTop resources by degree centrality:")
-        for node, centrality in top_resources_by_degree:
-            print(f"  Resource: {node}, Centrality: {centrality:.4f}")
-        
         # Connectivity analysis
-        print("\nConnectivity Analysis:")
         
         # For directed graphs, we analyze weakly and strongly connected components
         if nx.is_directed(self.graph):
             weak_components = list(nx.weakly_connected_components(self.graph))
             strong_components = list(nx.strongly_connected_components(self.graph))
             
-            print(f"Weakly connected components: {len(weak_components)}")
-            print(f"Largest weakly connected component: {len(max(weak_components, key=len))} nodes")
+            num_weak_components = len(weak_components)
+            num_strong_components = len(strong_components)
+            largest_weak_component = len(max(weak_components, key=len)) if weak_components else 0
+            largest_strong_component = len(max(strong_components, key=len)) if strong_components else 0
+            giant_ratio = largest_weak_component / num_nodes if num_nodes > 0 else 0
             
-            print(f"Strongly connected components: {len(strong_components)}")
-            print(f"Largest strongly connected component: {len(max(strong_components, key=len))} nodes")
-            
-            # Calculate the giant component ratio
-            giant_ratio = len(max(weak_components, key=len)) / num_nodes
-            print(f"Giant component ratio: {giant_ratio:.2f}")
-        else:
-            # For undirected graphs
-            components = list(nx.connected_components(self.graph))
-            print(f"Connected components: {len(components)}")
-            print(f"Largest connected component: {len(max(components, key=len))} nodes")
-            
-            # Calculate the giant component ratio
-            giant_ratio = len(max(components, key=len)) / num_nodes
-            print(f"Giant component ratio: {giant_ratio:.2f}")
-        
-        # Disconnected nodes analysis
-        print("\nDisconnected Nodes Analysis:")
-        
-        # Get nodes that are not part of the largest connected component
-        if nx.is_directed(self.graph):
-            weak_components = list(nx.weakly_connected_components(self.graph))
+            # Get nodes that are not part of the largest connected component
             if weak_components:
                 largest_component = max(weak_components, key=len)
                 disconnected_nodes = [n for n in self.graph.nodes() if n not in largest_component]
+            else:
+                disconnected_nodes = []
         else:
+            # For undirected graphs
             components = list(nx.connected_components(self.graph))
+            num_components = len(components)
+            largest_component = len(max(components, key=len)) if components else 0
+            giant_ratio = largest_component / num_nodes if num_nodes > 0 else 0
+            
+            # For compatibility with the directed graph case
+            num_weak_components = num_components
+            num_strong_components = 0
+            largest_weak_component = largest_component
+            largest_strong_component = 0
+            
+            # Get nodes that are not part of the largest connected component
             if components:
                 largest_component = max(components, key=len)
                 disconnected_nodes = [n for n in self.graph.nodes() if n not in largest_component]
             else:
                 disconnected_nodes = []
         
-        print(f"Nodes not connected to the largest component: {len(disconnected_nodes)} ({len(disconnected_nodes)/num_nodes*100:.1f}% of total)")
-        
         # Categorize disconnected nodes
         disconnected_users = [n for n in disconnected_nodes if self._is_username(n)]
         disconnected_resources = [n for n in disconnected_nodes if self._is_resource(n)]
         
-        print(f"Disconnected users: {len(disconnected_users)}")
-        print(f"Disconnected resources: {len(disconnected_resources)}")
-        
-        if disconnected_users and len(disconnected_users) <= 5:
-            print("Sample disconnected users:")
-            for user in disconnected_users[:5]:
-                print(f"  {user}")
-        
-        # Also still check for completely isolated nodes (degree 0)
+        # Check for completely isolated nodes (degree 0)
         isolated_nodes = list(nx.isolates(self.graph))
-        print(f"Completely isolated nodes (degree 0): {len(isolated_nodes)} ({len(isolated_nodes)/num_nodes*100:.1f}%)")
         
         # Find nodes with only incoming or only outgoing connections
         if nx.is_directed(self.graph):
@@ -203,12 +166,70 @@ class GraphAnalyzer:
             only_outgoing = [n for n in self.graph.nodes() 
                             if self.graph.in_degree(n) == 0 and self.graph.out_degree(n) > 0]
             
-            print(f"Nodes with only incoming connections: {len(only_incoming)}")
-            print(f"Nodes with only outgoing connections: {len(only_outgoing)}")
+            num_only_incoming = len(only_incoming)
+            num_only_outgoing = len(only_outgoing)
+        else:
+            only_incoming = only_outgoing = []
+            num_only_incoming = num_only_outgoing = 0
         
         # Clustering coefficient - how nodes tend to cluster together
         try:
             avg_clustering = nx.average_clustering(self.graph)
-            print(f"\nAverage clustering coefficient: {avg_clustering:.4f}")
-        except Exception as e:
-            print(f"Couldn't calculate clustering coefficient: {e}")
+        except Exception:
+            avg_clustering = None
+            
+        # Relationship types distribution
+        rel_types = {}
+        for _, _, attr in self.graph.edges(data=True):
+            rel_type = attr.get('type', 'unknown')
+            rel_types[rel_type] = rel_types.get(rel_type, 0) + 1
+        
+        # Build and return the results dictionary
+        return {
+            "basic_stats": {
+                "num_nodes": num_nodes,
+                "num_edges": num_edges,
+                "users_count": len(users),
+                "resources_count": len(resources),
+                "users_percentage": (len(users)/num_nodes*100) if num_nodes > 0 else 0,
+                "resources_percentage": (len(resources)/num_nodes*100) if num_nodes > 0 else 0
+            },
+            "degree_stats": {
+                "avg_degree": avg_degree,
+                "max_degree": max_degree,
+                "min_degree": min_degree
+            },
+            "top_users_by_centrality": [
+                {"user": user, "centrality": centrality} 
+                for user, centrality in top_users_by_degree
+            ],
+            "top_resources_by_centrality": [
+                {"resource": resource, "centrality": centrality} 
+                for resource, centrality in top_resources_by_degree
+            ],
+            "connectivity": {
+                "is_directed": nx.is_directed(self.graph),
+                "weak_components": num_weak_components,
+                "strong_components": num_strong_components,
+                "largest_weak_component": largest_weak_component,
+                "largest_strong_component": largest_strong_component,
+                "giant_component_ratio": giant_ratio
+            },
+            "disconnected_nodes": {
+                "total": len(disconnected_nodes),
+                "percentage": (len(disconnected_nodes)/num_nodes*100) if num_nodes > 0 else 0,
+                "users_count": len(disconnected_users),
+                "resources_count": len(disconnected_resources),
+                "sample_users": disconnected_users[:5] if disconnected_users else []
+            },
+            "isolation": {
+                "isolated_nodes_count": len(isolated_nodes),
+                "isolated_nodes_percentage": (len(isolated_nodes)/num_nodes*100) if num_nodes > 0 else 0,
+                "only_incoming_nodes": num_only_incoming,
+                "only_outgoing_nodes": num_only_outgoing
+            },
+            "clustering": {
+                "avg_clustering_coefficient": avg_clustering
+            },
+            "relationship_types_distribution": rel_types
+        }
