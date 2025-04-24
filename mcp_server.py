@@ -60,11 +60,15 @@ async def collect(
     # Create the repos config
     repos_config = [{"username": user, "owner": owner, "repo": repo}]
     
+    NEO4J_URI = os.environ.get("NEO4J_URI", DEFAULT_NEO4J_URI)
+    NEO4J_USER = os.environ.get("NEO4J_USER", DEFAULT_NEO4J_USER)
+    NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", DEFAULT_NEO4J_PASSWORD)
+
     # Create Neo4j save strategy (default for MCP server)
     save_strategy = Neo4jSave(
-        uri=DEFAULT_NEO4J_URI,
-        username=DEFAULT_NEO4J_USER,
-        password=DEFAULT_NEO4J_PASSWORD
+        uri=NEO4J_URI,
+        username=NEO4J_USER,
+        password=NEO4J_PASSWORD
     )
     
     # Create collector with Neo4j save strategy
@@ -110,11 +114,15 @@ async def analyze(
     # Build Neo4j query based on filters
     query = _build_neo4j_query(dates, relationship_types)
     
+    NEO4J_URI = os.environ.get("NEO4J_URI", DEFAULT_NEO4J_URI)
+    NEO4J_USER = os.environ.get("NEO4J_USER", DEFAULT_NEO4J_USER)
+    NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", DEFAULT_NEO4J_PASSWORD)
+
     # Create Neo4j loader with custom query
     loader = Neo4jLoader(
-        uri=DEFAULT_NEO4J_URI,
-        username=DEFAULT_NEO4J_USER,
-        password=DEFAULT_NEO4J_PASSWORD,
+        uri=NEO4J_URI,
+        username=NEO4J_USER,
+        password=NEO4J_PASSWORD,
         query=query
     )
     
@@ -186,5 +194,7 @@ def _build_neo4j_query(dates: List[str], relationship_types: List[str]) -> str:
 
 # Main entry point
 if __name__ == "__main__":
-    # Bind to all interfaces (0.0.0.0) to allow external connections
-    asyncio.run(mcp.run(host="0.0.0.0", port=8000, transport="sse"))
+    if os.environ.get("MCP_TRANSPORT") == "sse":
+        asyncio.run(mcp.run(host="0.0.0.0", port=8000, transport="sse"))
+    else:
+        asyncio.run(mcp.run(transport='stdio'))
