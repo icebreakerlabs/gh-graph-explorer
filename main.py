@@ -27,7 +27,7 @@ def parse_arguments():
                         help='Output strategy (print, csv, neo4j). Default: print')
     collect_parser.add_argument('--output-file', type=str,
                         help='Output file path for CSV strategy')
-    collect_parser.add_argument('--neo4j-uri', type=str, default='bolt://neo4j:7687',
+    collect_parser.add_argument('--neo4j-uri', type=str, default='bolt://localhost:7687',
                         help='Neo4j URI (default: bolt://neo4j:7687)')
     collect_parser.add_argument('--neo4j-user', type=str, default='neo4j',
                         help='Neo4j username (default: neo4j)')
@@ -40,7 +40,7 @@ def parse_arguments():
                         help='Data source for analysis (csv or neo4j)')
     analyze_parser.add_argument('--file', type=str, 
                         help='CSV file path for analysis when source is csv')
-    analyze_parser.add_argument('--neo4j-uri', type=str, default='bolt://neo4j:7687',
+    analyze_parser.add_argument('--neo4j-uri', type=str, default='bolt://localhost:7687',
                         help='Neo4j URI (default: bolt://neo4j:7687)')
     analyze_parser.add_argument('--neo4j-user', type=str, default='neo4j',
                         help='Neo4j username (default: neo4j)')
@@ -48,6 +48,25 @@ def parse_arguments():
                         help='Neo4j password (default from NEO4J_PASSWORD env var, or "password")')
     analyze_parser.add_argument('--neo4j-query', type=str,
                         help='Custom Neo4j query for analysis')
+    
+    # Get edges mode parser
+    edges_parser = subparsers.add_parser('get-edges', help='Get edges from GitHub data graph')
+    edges_parser.add_argument('--source', type=str, choices=['csv', 'neo4j'], required=True,
+                        help='Data source for getting edges (csv or neo4j)')
+    edges_parser.add_argument('--file', type=str, 
+                        help='CSV file path when source is csv')
+    edges_parser.add_argument('--neo4j-uri', type=str, default='bolt://localhost:7687',
+                        help='Neo4j URI (default: bolt://neo4j:7687)')
+    edges_parser.add_argument('--neo4j-user', type=str, default='neo4j',
+                        help='Neo4j username (default: neo4j)')
+    edges_parser.add_argument('--neo4j-password', type=str, default=os.environ.get('NEO4J_PASSWORD', 'password'),
+                        help='Neo4j password (default from NEO4J_PASSWORD env var, or "password")')
+    edges_parser.add_argument('--neo4j-query', type=str,
+                        help='Custom Neo4j query for filtering edges')
+    edges_parser.add_argument('--output', type=str, choices=['print', 'csv', 'json'], default='print',
+                        help='Output format (print, csv, json). Default: print')
+    edges_parser.add_argument('--output-file', type=str,
+                        help='Output file path for CSV or JSON output')
                         
     return parser.parse_args()
 
@@ -145,6 +164,62 @@ def analyze_data(args):
     analyzer = GraphAnalyzer(load_strategy=loader)
     analyzer.create().analyze()
 
+def get_edges(args):
+    """
+    Function for retrieving edges from the GitHub data graph
+    """
+    # Create loader based on source
+    if args.source == 'csv':
+        if not args.file:
+            raise ValueError("--file must be specified when source is csv")
+        loader = CSVLoader(
+            filepath=args.file
+        )
+    else:  # neo4j
+        loader = Neo4jLoader(
+            uri=args.neo4j_uri,
+            username=args.neo4j_user,
+            password=args.neo4j_password,
+            query=args.neo4j_query
+        )
+    
+    # Create analyzer and get edges
+    analyzer = GraphAnalyzer(load_strategy=loader)
+    analyzer.create()
+    edges = analyzer.get_edges()
+    
+    # Output edges based on the chosen format
+    if args.output == 'csv':
+        if not args.output_file:
+            raise ValueError("--output-file must be specified for CSV output")
+        import csv
+        with open(args.output_file, 'w', newline='') as f:
+            # Extract headers from the first edge
+            if edges:
+                writer = csv.DictWriter(f, fieldnames=['source_name', 'source_attrs', 'target_name', 'target_attrs', 'type', 'properties'])
+                writer.writeheader()
+                for edge in edges:
+                    writer.writerow({
+                        'source_name': edge['source'].get('name', ''),
+                        'source_attrs': json.dumps(edge['source']),
+                        'target_name': edge['target'].get('name', ''),
+                        'target_attrs': json.dumps(edge['target']),
+                        'type': edge.get('type', ''),
+                        'properties': json.dumps(edge.get('properties', {}))
+                    })
+    elif args.output == 'json':
+        if not args.output_file:
+            raise ValueError("--output-file must be specified for JSON output")
+        with open(args.output_file, 'w') as f:
+            json.dump(edges, f, default=str)
+    else:  # default to print
+        for edge in edges:
+            print(f"Source: {edge['source'].get('name')}")
+            print(f"Target: {edge['target'].get('name')}")
+            print(f"Type: {edge.get('type')}")
+            print(f"Properties: {edge.get('properties')}")
+            print("---")
+
 async def main():
     """
     Main function for the GitHub graph explorer
@@ -155,8 +230,10 @@ async def main():
         await collect_data(args)
     elif args.mode == 'analyze':
         analyze_data(args)
+    elif args.mode == 'get-edges':
+        get_edges(args)
     else:
-        print("No mode specified. Use 'collect' or 'analyze'")
+        print("No mode specified. Use 'collect', 'analyze', or 'get-edges'")
         return 1
     
     return 0

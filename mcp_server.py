@@ -1,3 +1,4 @@
+import json
 import os
 import asyncio
 from datetime import datetime
@@ -29,6 +30,39 @@ VALID_RELATIONSHIP_TYPES = [
     "PR_REVIEW_COMMENTED"
 ]
 
+def _get_neo4j_credentials():
+    """
+    Helper function to get Neo4j credentials from environment variables or defaults.
+    
+    Returns:
+        Tuple of (uri, username, password)
+    """
+    return (
+        os.environ.get("NEO4J_URI", DEFAULT_NEO4J_URI),
+        os.environ.get("NEO4J_USER", DEFAULT_NEO4J_USER),
+        os.environ.get("NEO4J_PASSWORD", DEFAULT_NEO4J_PASSWORD)
+    )
+
+def _validate_relationship_types(relationship_types):
+    """
+    Helper function to validate relationship types.
+    
+    Args:
+        relationship_types: List of relationship types to validate
+        
+    Returns:
+        Tuple of (is_valid, error_message) where error_message is None if valid
+    """
+    if not relationship_types:
+        return True, None
+        
+    invalid_types = [t for t in relationship_types if t not in VALID_RELATIONSHIP_TYPES]
+    if invalid_types:
+        return False, {
+            "error": f"Invalid relationship types: {', '.join(invalid_types)}",
+            "valid_types": VALID_RELATIONSHIP_TYPES
+        }
+    return True, None
 
 @mcp.tool("collect")
 async def collect(
@@ -60,15 +94,13 @@ async def collect(
     # Create the repos config
     repos_config = [{"username": user, "owner": owner, "repo": repo}]
     
-    NEO4J_URI = os.environ.get("NEO4J_URI", DEFAULT_NEO4J_URI)
-    NEO4J_USER = os.environ.get("NEO4J_USER", DEFAULT_NEO4J_USER)
-    NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", DEFAULT_NEO4J_PASSWORD)
+    uri, username, password = _get_neo4j_credentials()
 
     # Create Neo4j save strategy (default for MCP server)
     save_strategy = Neo4jSave(
-        uri=NEO4J_URI,
-        username=NEO4J_USER,
-        password=NEO4J_PASSWORD
+        uri=uri,
+        username=username,
+        password=password
     )
     
     # Create collector with Neo4j save strategy
@@ -86,8 +118,6 @@ async def collect(
             "results": results,
             "days_collected": days
         }
-        
-
 
 @mcp.tool("analyze")
 async def analyze(
@@ -103,26 +133,20 @@ async def analyze(
     """
     
     # Validate relationship types if provided
-    if relationship_types:
-        invalid_types = [t for t in relationship_types if t not in VALID_RELATIONSHIP_TYPES]
-        if invalid_types:
-            return {
-                    "error": f"Invalid relationship types: {', '.join(invalid_types)}",
-                    "valid_types": VALID_RELATIONSHIP_TYPES
-                }
+    is_valid, error = _validate_relationship_types(relationship_types)
+    if not is_valid:
+        return error
     
     # Build Neo4j query based on filters
     query = _build_neo4j_query(dates, relationship_types)
     
-    NEO4J_URI = os.environ.get("NEO4J_URI", DEFAULT_NEO4J_URI)
-    NEO4J_USER = os.environ.get("NEO4J_USER", DEFAULT_NEO4J_USER)
-    NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", DEFAULT_NEO4J_PASSWORD)
+    uri, username, password = _get_neo4j_credentials()
 
     # Create Neo4j loader with custom query
     loader = Neo4jLoader(
-        uri=NEO4J_URI,
-        username=NEO4J_USER,
-        password=NEO4J_PASSWORD,
+        uri=uri,
+        username=username,
+        password=password,
         query=query
     )
     
@@ -142,6 +166,52 @@ async def analyze(
             }
         }
         
+@mcp.tool("get_network")
+async def get_network(
+    relationship_types: Optional[List[str]] = None,
+    dates: Optional[List[str]] = None
+) -> dict:
+    """
+    Get network data as an edge list optimized for LLM parsing.
+    
+    Request parameters:
+        - relationship_types: List of relationship types to filter by (optional)
+        - dates: List of dates to filter by (optional)
+    """
+    
+    # Validate relationship types if provided
+    is_valid, error = _validate_relationship_types(relationship_types)
+    if not is_valid:
+        return error
+    
+    # Build Neo4j query for edge list
+    query = _build_neo4j_query(dates, relationship_types)
+    
+    uri, username, password = _get_neo4j_credentials()
+
+    # Create Neo4j loader with custom query
+    loader = Neo4jLoader(
+        uri=uri,
+        username=username,
+        password=password,
+        query=query
+    )
+    
+    # Create graph analyzer and get the edge list directly from it
+    analyzer = GraphAnalyzer(load_strategy=loader)
+    analyzer.create()
+    edges = analyzer.get_edges()
+    
+    return {
+        "message": "Network edge list generated successfully",
+        "edge_count": len(edges),
+        "edge_list": json.dumps(edges, default=str),
+        "filters": {
+            "relationship_types": relationship_types,
+            "dates": dates
+        }
+    }
+
 def _build_neo4j_query(dates: List[str], relationship_types: List[str]) -> str:
     """
     Build a Neo4j query based on filters.

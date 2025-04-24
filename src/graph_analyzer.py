@@ -62,6 +62,17 @@ class GraphAnalyzer:
         """
         return not self._is_username(node)
         
+    def get_edges(self) -> List[Dict[str, Any]]:
+        """
+        Extract edge data from the graph in a format optimized for LLM parsing.
+        
+        Returns:
+            List of dictionaries with source, target, type and properties for each edge
+        """
+        if self.graph is None:
+            return {"error": "No graph has been created yet. Call create() first."}
+        return [e for e in nx.generate_edgelist(self.graph)]
+        
     def analyze(self) -> Dict[str, Any]:
         """
         Analyze the graph and return structured information including:
