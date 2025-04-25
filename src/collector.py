@@ -12,7 +12,6 @@ class Collector:
     def __init__(
         self,
         days: int = 7,
-        github_token: Optional[str] = None,
         save_strategy: Optional[SaveStrategy] = None,
     ):
         """
@@ -20,8 +19,6 @@ class Collector:
 
         Args:
             days: Number of days to look back for GitHub activity (default: 7)
-            github_token: GitHub personal access token with appropriate permissions.
-                          If None, will try to use GITHUB_TOKEN from environment variables.
             save_strategy: Strategy to use for saving edges. If None, uses PrintSave by default.
         """
         self.days = days
