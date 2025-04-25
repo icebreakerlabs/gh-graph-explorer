@@ -162,7 +162,7 @@ def analyze_data(args):
     
     # Create and run analyzer
     analyzer = GraphAnalyzer(load_strategy=loader)
-    analyzer.create().analyze()
+    print(analyzer.create().analyze())
 
 def get_edges(args):
     """

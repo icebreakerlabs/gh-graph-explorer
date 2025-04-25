@@ -34,7 +34,7 @@ uv run main.py analyze --source csv --file github_data.csv
 uv run main.py analyze --source neo4j --neo4j-uri bolt://localhost:7687
 ```
 
-The analyzer will use the appropriate loader (CSVLoader or Neo4jLoader) to load the data, create a networkx DiGraph, and then use the GraphAnalyzer's analyze method to display information about the graph, such as the number of nodes and edges.
+The analyzer will use the appropriate loader (CSVLoader or Neo4jLoader) to load the data, create a networkx MultiGraph, and then use the GraphAnalyzer's analyze method to display information about the graph, such as the number of nodes and edges.
 
 If you want to customize the Neo4j query for analysis, you can also use the --neo4j-query parameter:
 ```

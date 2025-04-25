@@ -5,7 +5,7 @@ from typing import Dict, Any, List
 
 class Loader(ABC):
     """
-    Abstract base class for loading data into a networkx DiGraph.
+    Abstract base class for loading data into a networkx MultiGraph.
     
     This class defines the interface that all loader implementations must follow.
     Subclasses should implement the load_data method to retrieve and format data
@@ -22,14 +22,14 @@ class Loader(ABC):
         """
         pass
     
-    def create_graph(self) -> nx.DiGraph:
+    def create_graph(self) -> nx.MultiGraph:
         """
-        Creates a networkx DiGraph from the loaded data.
+        Creates a networkx MultiGraph from the loaded data.
         
         Returns:
-            A networkx DiGraph containing the relationships
+            A networkx MultiGraph containing the relationships
         """
-        G = nx.DiGraph()
+        G = nx.MultiGraph()
         
         # Load relationships from the data source
         relationships = self.load_data()

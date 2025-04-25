@@ -9,7 +9,7 @@ class CSVLoader(Loader):
     Loader implementation that reads relationships from a CSV file.
     
     This class loads data from a CSV file and converts it into a list of relationship 
-    dictionaries that can be used to build a networkx DiGraph.
+    dictionaries that can be used to build a networkx MultiGraph.
     """
     
     def __init__(self, filepath: str, delimiter: str = ',', 

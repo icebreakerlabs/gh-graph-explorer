@@ -9,7 +9,7 @@ class Neo4jLoader(Loader):
     
     This class executes a Cypher query in Neo4j and converts the results 
     into a list of relationship dictionaries that can be used to build 
-    a networkx DiGraph.
+    a networkx MultiGraph.
     """
     
     def __init__(self, uri: str = "bolt://neo4j:7687", 

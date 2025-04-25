@@ -5,9 +5,9 @@ from collections import Counter
 
 class GraphAnalyzer:
     """
-    Class responsible for creating and analyzing a networkx DiGraph using a loader strategy.
+    Class responsible for creating and analyzing a networkx MultiGraph using a loader strategy.
     
-    This class takes a loader implementation and uses it to create a networkx DiGraph
+    This class takes a loader implementation and uses it to create a networkx MultiGraph
     representing relationships between entities in a GitHub social network.
     """
     
@@ -23,7 +23,7 @@ class GraphAnalyzer:
     
     def create(self) -> 'GraphAnalyzer':
         """
-        Create a networkx DiGraph using the configured loader strategy and store it in memory.
+        Create a networkx MultiGraph using the configured loader strategy and store it in memory.
         
         Returns:
             Self reference for method chaining
@@ -102,7 +102,7 @@ class GraphAnalyzer:
         # Count users vs resources
         users = [n for n in self.graph.nodes() if self._is_username(n)]
         resources = [n for n in self.graph.nodes() if self._is_resource(n)]
-            
+        
         # Basic degree statistics
         degrees = [d for _, d in self.graph.degree()]
         avg_degree = sum(degrees) / num_nodes if degrees else 0
@@ -125,70 +125,28 @@ class GraphAnalyzer:
         top_resources_by_degree = sorted(top_resources_by_degree, key=lambda x: x[1], reverse=True)[:5]
         
         # Connectivity analysis
-        
-        # For directed graphs, we analyze weakly and strongly connected components
-        if nx.is_directed(self.graph):
-            weak_components = list(nx.weakly_connected_components(self.graph))
-            strong_components = list(nx.strongly_connected_components(self.graph))
-            
-            num_weak_components = len(weak_components)
-            num_strong_components = len(strong_components)
-            largest_weak_component = len(max(weak_components, key=len)) if weak_components else 0
-            largest_strong_component = len(max(strong_components, key=len)) if strong_components else 0
-            giant_ratio = largest_weak_component / num_nodes if num_nodes > 0 else 0
-            
-            # Get nodes that are not part of the largest connected component
-            if weak_components:
-                largest_component = max(weak_components, key=len)
-                disconnected_nodes = [n for n in self.graph.nodes() if n not in largest_component]
-            else:
-                disconnected_nodes = []
+        components = list(nx.connected_components(self.graph))
+        largest_component = len(max(components, key=len)) if components else 0
+        giant_ratio = largest_component / num_nodes if num_nodes > 0 else 0
+
+        # Get nodes that are not part of the largest connected component
+        if components:
+            largest_component = max(components, key=len)
+            disconnected_nodes = [n for n in self.graph.nodes() if n not in largest_component]
         else:
-            # For undirected graphs
-            components = list(nx.connected_components(self.graph))
-            num_components = len(components)
-            largest_component = len(max(components, key=len)) if components else 0
-            giant_ratio = largest_component / num_nodes if num_nodes > 0 else 0
-            
-            # For compatibility with the directed graph case
-            num_weak_components = num_components
-            num_strong_components = 0
-            largest_weak_component = largest_component
-            largest_strong_component = 0
-            
-            # Get nodes that are not part of the largest connected component
-            if components:
-                largest_component = max(components, key=len)
-                disconnected_nodes = [n for n in self.graph.nodes() if n not in largest_component]
-            else:
-                disconnected_nodes = []
-        
+            disconnected_nodes = []
+    
         # Categorize disconnected nodes
         disconnected_users = [n for n in disconnected_nodes if self._is_username(n)]
         disconnected_resources = [n for n in disconnected_nodes if self._is_resource(n)]
-        
-        # Check for completely isolated nodes (degree 0)
-        isolated_nodes = list(nx.isolates(self.graph))
-        
-        # Find nodes with only incoming or only outgoing connections
-        if nx.is_directed(self.graph):
-            only_incoming = [n for n in self.graph.nodes() 
-                            if self.graph.in_degree(n) > 0 and self.graph.out_degree(n) == 0]
-            only_outgoing = [n for n in self.graph.nodes() 
-                            if self.graph.in_degree(n) == 0 and self.graph.out_degree(n) > 0]
-            
-            num_only_incoming = len(only_incoming)
-            num_only_outgoing = len(only_outgoing)
-        else:
-            only_incoming = only_outgoing = []
-            num_only_incoming = num_only_outgoing = 0
-        
-        # Clustering coefficient - how nodes tend to cluster together
-        try:
-            avg_clustering = nx.average_clustering(self.graph)
-        except Exception:
-            avg_clustering = None
-            
+        connectivity_metrics = {}
+
+        largest_component_graph = self.graph.subgraph(max(components, key=len))
+        # Find key users whose removal would disconnect the network
+        min_cut = nx.minimum_node_cut(largest_component_graph)
+        connectivity_metrics["minimum_node_cut"] = list(min_cut)
+        connectivity_metrics["min_cut_size"] = len(min_cut)
+                
         # Relationship types distribution
         rel_types = {}
         for _, _, attr in self.graph.edges(data=True):
@@ -219,11 +177,6 @@ class GraphAnalyzer:
                 for resource, centrality in top_resources_by_degree
             ],
             "connectivity": {
-                "is_directed": nx.is_directed(self.graph),
-                "weak_components": num_weak_components,
-                "strong_components": num_strong_components,
-                "largest_weak_component": largest_weak_component,
-                "largest_strong_component": largest_strong_component,
                 "giant_component_ratio": giant_ratio
             },
             "disconnected_nodes": {
@@ -233,14 +186,6 @@ class GraphAnalyzer:
                 "resources_count": len(disconnected_resources),
                 "sample_users": disconnected_users[:5] if disconnected_users else []
             },
-            "isolation": {
-                "isolated_nodes_count": len(isolated_nodes),
-                "isolated_nodes_percentage": (len(isolated_nodes)/num_nodes*100) if num_nodes > 0 else 0,
-                "only_incoming_nodes": num_only_incoming,
-                "only_outgoing_nodes": num_only_outgoing
-            },
-            "clustering": {
-                "avg_clustering_coefficient": avg_clustering
-            },
+            "connectivity_metrics": connectivity_metrics,
             "relationship_types_distribution": rel_types
         }
