@@ -7,16 +7,16 @@ from .collector import Collector
 from .user_work_fetcher import UserWorkFetcher
 
 __all__ = [
-    'Loader',
-    'CSVLoader',
-    'Neo4jLoader',
-    'GraphAnalyzer',
-    'Edge',
-    'EdgeFactory',
-    'SaveStrategy',
-    'PrintSave',
-    'CSVSave',
-    'Neo4jSave',
-    'Collector',
-    'UserWorkFetcher',
+    "Loader",
+    "CSVLoader",
+    "Neo4jLoader",
+    "GraphAnalyzer",
+    "Edge",
+    "EdgeFactory",
+    "SaveStrategy",
+    "PrintSave",
+    "CSVSave",
+    "Neo4jSave",
+    "Collector",
+    "UserWorkFetcher",
 ]

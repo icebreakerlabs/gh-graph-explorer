@@ -6,6 +6,7 @@ class Edge:
     """
     Class representing an edge in the GitHub work graph.
     """
+
     def __init__(
         self,
         edge_type: Optional[str] = None,
@@ -13,7 +14,7 @@ class Edge:
         created_at: Optional[str] = None,
         login: Optional[str] = None,
         url: Optional[str] = None,
-        parent_url: Optional[str] = None
+        parent_url: Optional[str] = None,
     ):
         """
         Initialize an Edge with the given properties.
@@ -38,15 +39,15 @@ class Edge:
         Return the source of the edge, which is the login of the user who created it.
         """
         return self.login
-    
+
     def target(self) -> str:
         """
         Return the target of the edge, which is the URL of the GitHub object.
         """
-        if self.parent_url: 
+        if self.parent_url:
             return self.parent_url
         return self._url
-    
+
     def type(self) -> str:
         """
         Return the type of the edge.
@@ -58,13 +59,13 @@ class Edge:
         Return the creation date of the edge.
         """
         return self._created_at
-    
+
     def url(self) -> Optional[str]:
         """
         Return the URL of the edge.
         """
         return self._url
-    
+
     def title(self) -> Optional[str]:
         """
         Return the title of the edge.
@@ -74,23 +75,23 @@ class Edge:
     def to_row(self) -> Dict[str, Optional[str]]:
         """
         Return a row representation of the edge data.
-        
+
         Returns:
             Dictionary containing the edge data in row format
         """
         return {
-            'source': self.source(),
-            'target': self.target(),
-            'type': self.type(),
-            'title': self.title(),
-            'created_at': self.created_at(),
-            'url': self.url(),
+            "source": self.source(),
+            "target": self.target(),
+            "type": self.type(),
+            "title": self.title(),
+            "created_at": self.created_at(),
+            "url": self.url(),
         }
-    
+
     def __str__(self) -> str:
         """
         Return a string representation of the edge.
-        
+
         Returns:
             String representation of the edge
         """

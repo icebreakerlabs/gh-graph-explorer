@@ -110,11 +110,12 @@ fragment repo on Repository {
   }
 """
 
+
 class UserWorkFetcher:
     def __init__(self, github_token: str = None):
         """
         Initialize the UserWorkFetcher with a GitHub token.
-        
+
         Args:
             github_token: GitHub personal access token with appropriate permissions.
                           If None, will try to use GITHUB_TOKEN from environment variables.
@@ -122,47 +123,61 @@ class UserWorkFetcher:
         if github_token is None:
             github_token = os.environ.get("GITHUB_TOKEN")
             if github_token is None:
-                raise ValueError("GitHub token not provided and GITHUB_TOKEN environment variable not set")
-        
+                raise ValueError(
+                    "GitHub token not provided and GITHUB_TOKEN environment variable not set"
+                )
+
         # Set up the transport with the GitHub GraphQL API endpoint
         transport = AIOHTTPTransport(
             url="https://api.github.com/graphql",
-            headers={"Authorization": f"Bearer {github_token}"}
+            headers={"Authorization": f"Bearer {github_token}"},
         )
-        
+
         # Create the client
         self.client = Client(transport=transport, fetch_schema_from_transport=True)
         self.query = gql(USER_WORK_QUERY)
-    
-    def _build_prs_created_query(self, username: str, since_date: datetime.datetime) -> str:
+
+    def _build_prs_created_query(
+        self, username: str, since_date: datetime.datetime
+    ) -> str:
         """Build query for PRs created by the user"""
         return f"author:{username} is:pr updated:>={since_date.strftime('%Y-%m-%d')}"
-    
-    def _build_pr_contributions_query(self, username: str, since_date: datetime.datetime) -> str:
+
+    def _build_pr_contributions_query(
+        self, username: str, since_date: datetime.datetime
+    ) -> str:
         """Build query for PRs the user contributed to but didn't author"""
-        return f"involves:{username} is:pr updated:>={since_date.strftime('%Y-%m-%d')}" #-author:{username}
-    
-    def _build_issue_comments_query(self, username: str, since_date: datetime.datetime) -> str:
+        return f"involves:{username} is:pr updated:>={since_date.strftime('%Y-%m-%d')}"  # -author:{username}
+
+    def _build_issue_comments_query(
+        self, username: str, since_date: datetime.datetime
+    ) -> str:
         """Build query for issues with user comments"""
-        return f"commenter:{username} is:issue updated:>={since_date.strftime('%Y-%m-%d')}" #-author:{username}
-    
-    def _build_discussions_created_query(self, username: str, since_date: datetime.datetime) -> str:
+        return f"commenter:{username} is:issue updated:>={since_date.strftime('%Y-%m-%d')}"  # -author:{username}
+
+    def _build_discussions_created_query(
+        self, username: str, since_date: datetime.datetime
+    ) -> str:
         """Build query for discussions created by the user"""
         return f"author:{username} is:discussion updated:>={since_date.strftime('%Y-%m-%d')}"
-    
-    def _build_discussions_involved_query(self, username: str, since_date: datetime.datetime) -> str:
+
+    def _build_discussions_involved_query(
+        self, username: str, since_date: datetime.datetime
+    ) -> str:
         """Build query for discussions the user is involved in but didn't create"""
-        return f"involves:{username} is:discussion updated:>={since_date.strftime('%Y-%m-%d')}" #-author:{username}
-    
-    async def get(self, 
-                 username: str, 
-                 owner: str, 
-                 repo: str, 
-                 since_iso: str = None,
-                 days: int = 30) -> dict:
+        return f"involves:{username} is:discussion updated:>={since_date.strftime('%Y-%m-%d')}"  # -author:{username}
+
+    async def get(
+        self,
+        username: str,
+        owner: str,
+        repo: str,
+        since_iso: str = None,
+        days: int = 30,
+    ) -> dict:
         """
         Simplified method to get user's GitHub work data.
-        
+
         Args:
             username: GitHub username
             owner: Repository owner
@@ -170,7 +185,7 @@ class UserWorkFetcher:
             since_iso: DateTime string in ISO format for filtering by date
                       (if None, will use current date minus days)
             days: Number of days to look back if since_iso is not provided
-            
+
         Returns:
             The GraphQL query results as a dictionary
         """
@@ -181,16 +196,31 @@ class UserWorkFetcher:
             since_iso = since_date.isoformat()
         else:
             # Parse the ISO string to a datetime object for building queries
-            since_date = datetime.datetime.fromisoformat(since_iso.replace('Z', '+00:00'))
-        
+            since_date = datetime.datetime.fromisoformat(
+                since_iso.replace("Z", "+00:00")
+            )
+
         # Build all query strings
         name_with_owner_query = f"repo:{owner}/{repo} "
-        prs_created_query = name_with_owner_query + self._build_prs_created_query(username, since_date)
-        pr_contributions_query = name_with_owner_query + self._build_pr_contributions_query(username, since_date)
-        issue_comments_query = name_with_owner_query + self._build_issue_comments_query(username, since_date)
-        discussions_created_query = name_with_owner_query + self._build_discussions_created_query(username, since_date)
-        discussions_involved_query = name_with_owner_query + self._build_discussions_involved_query(username, since_date)
-        
+        prs_created_query = name_with_owner_query + self._build_prs_created_query(
+            username, since_date
+        )
+        pr_contributions_query = (
+            name_with_owner_query
+            + self._build_pr_contributions_query(username, since_date)
+        )
+        issue_comments_query = name_with_owner_query + self._build_issue_comments_query(
+            username, since_date
+        )
+        discussions_created_query = (
+            name_with_owner_query
+            + self._build_discussions_created_query(username, since_date)
+        )
+        discussions_involved_query = (
+            name_with_owner_query
+            + self._build_discussions_involved_query(username, since_date)
+        )
+
         # Execute the query with built parameters
         return await self.execute_query(
             username=username,
@@ -201,22 +231,24 @@ class UserWorkFetcher:
             pr_contributions_query=pr_contributions_query,
             issue_comments_query=issue_comments_query,
             discussions_created_query=discussions_created_query,
-            discussions_involved_query=discussions_involved_query
+            discussions_involved_query=discussions_involved_query,
         )
-    
-    async def execute_query(self, 
-                           username: str, 
-                           owner: str, 
-                           repo: str, 
-                           since_iso: str,
-                           prs_created_query: str,
-                           pr_contributions_query: str,
-                           issue_comments_query: str,
-                           discussions_created_query: str,
-                           discussions_involved_query: str) -> dict:
+
+    async def execute_query(
+        self,
+        username: str,
+        owner: str,
+        repo: str,
+        since_iso: str,
+        prs_created_query: str,
+        pr_contributions_query: str,
+        issue_comments_query: str,
+        discussions_created_query: str,
+        discussions_involved_query: str,
+    ) -> dict:
         """
         Execute the getUserWork GraphQL query with the provided parameters.
-        
+
         Args:
             username: GitHub username
             owner: Repository owner
@@ -227,7 +259,7 @@ class UserWorkFetcher:
             issue_comments_query: Search query for issues with user comments
             discussions_created_query: Search query for discussions created by user
             discussions_involved_query: Search query for discussions the user is involved in
-            
+
         Returns:
             The GraphQL query results as a dictionary
         """
@@ -240,9 +272,9 @@ class UserWorkFetcher:
             "prContributionsQuery": pr_contributions_query,  # Add missing parameter
             "issueCommentsQuery": issue_comments_query,
             "discussionsCreatedQuery": discussions_created_query,
-            "discussionsInvolvedQuery": discussions_involved_query
+            "discussionsInvolvedQuery": discussions_involved_query,
         }
-        
+
         # Execute the query
         result = await self.client.execute_async(self.query, variable_values=variables)
         return result
