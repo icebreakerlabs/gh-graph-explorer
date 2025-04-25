@@ -40,3 +40,24 @@ If you want to customize the Neo4j query for analysis, you can also use the --ne
 ```
 uv run main.py analyze --source neo4j --neo4j-query "MATCH (source)-[rel]->(target)  WHERE rel.created_at > \"2025-04-01\" RETURN source.name AS source, target.url AS target, type(rel) AS type, properties(rel) AS properties" --neo4j-uri bolt://localhost:7687
 ```
+
+### Setup with Claude Desktop
+{
+    "mcpServers": {
+        "gh-graph-explorer": {
+            "command": "uv",
+            "args": [
+                "--directory",
+                "path to directory",
+                "run",
+                "mcp_server.py"
+            ],
+            "env": {
+                "GITHUB_TOKEN": "*****",
+                "NEO4J_PASSWORD": "password",
+                "NEO4J_USERNAME": "neo4j",
+                "NEO4J_URI": "bolt://localhost:7687"
+            }
+        }
+      }
+}
