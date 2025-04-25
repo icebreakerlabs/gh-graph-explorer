@@ -58,7 +58,7 @@ class EdgeFactory:
                 for comment in issue['comments']['nodes']:
                     edge = Edge(
                         edge_type='issue_comment',
-                        title=None,
+                        title=issue.get("title"),
                         created_at=comment.get('createdAt'),
                         login=comment.get('author', {}).get('login'),
                         url=comment.get('url'),
@@ -69,17 +69,15 @@ class EdgeFactory:
         # Process pull request reviews and commits
         for pr_edge in self.data.get('prReviewsAndCommits', {}).get('edges', []):
             pr = pr_edge.get('node', {})
-            pr_url = pr.get('url')
-            
             # Process reviews in the pull request
             for review in pr.get('reviews', {}).get('nodes', []):
                 yield Edge(
                     edge_type='pr_review_' + review.get('state', '').lower(),
-                    title=None,
+                    title=pr.get("title"),
                     created_at=review.get('createdAt'),
                     login=self.username,
                     url=review.get('url'),
-                    parent_url=pr_url
+                    parent_url=r.get('url')
                 )
 
         # Process discussions created
@@ -106,7 +104,7 @@ class EdgeFactory:
                             created_at=comment.get('createdAt'),
                             login=comment.get('author', {}).get('login'),
                             url=comment.get('url'),
-                            title=None,
+                            title=discussion.get("title"),
                             parent_url=discussion.get('url')
                         )
                         yield edge

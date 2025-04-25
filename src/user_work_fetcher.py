@@ -7,7 +7,7 @@ from gql.transport.aiohttp import AIOHTTPTransport
 
 # Define the GraphQL query as a string
 USER_WORK_QUERY = """
-query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: DateTime!, $prsCreatedQuery:String!, $prContributionsQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!, $addProjectFields:Boolean = false, $projectField:String = "") {
+query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: DateTime!, $prsCreatedQuery:String!, $prContributionsQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!) {
   repository(owner: $owner, name: $repo) {
       ...repo
   }
@@ -105,20 +105,6 @@ fragment repo on Repository {
         createdAt
         title
         url
-        projectItems(first: 10) {
-          edges {
-            node {
-              project {
-                title
-              }
-              fieldValueByName(name: $projectField) @include(if: $addProjectFields) {
-                ... on ProjectV2ItemFieldSingleSelectValue {
-                  name
-                }
-              }
-            }
-          }
-        }
       }
     }
   }

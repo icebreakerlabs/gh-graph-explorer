@@ -61,3 +61,8 @@ uv run main.py analyze --source neo4j --neo4j-query "MATCH (source)-[rel]->(targ
         }
       }
 }
+
+### Useful queries 
+```neo4j
+MATCH (source)-[rel:PR_REVIEW_APPROVED]->(target)  WHERE rel.created_at > "2025-04-15" RETURN * limit 100
+```
