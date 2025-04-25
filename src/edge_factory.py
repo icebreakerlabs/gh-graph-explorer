@@ -79,7 +79,7 @@ class EdgeFactory:
                     created_at=review.get("createdAt"),
                     login=self.username,
                     url=review.get("url"),
-                    parent_url=r.get("url"),
+                    parent_url=pr.get("url"),
                 )
 
         # Process discussions created
