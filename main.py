@@ -197,7 +197,6 @@ async def collect_data(args):
     # Create collector with the chosen save strategy
     collector = Collector(
         days=args.days,
-        github_token=os.environ.get("GITHUB_TOKEN"),
         save_strategy=save_strategy,
     )
 

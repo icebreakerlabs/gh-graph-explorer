@@ -100,7 +100,6 @@ async def collect(user: str, owner: str, repo: str, days: Optional[int] = 7) -> 
     # Create collector with Neo4j save strategy
     collector = Collector(
         days=days,
-        github_token=os.environ.get("GITHUB_TOKEN"),
         save_strategy=save_strategy,
     )
 
