@@ -30,22 +30,22 @@ class Edge:
         self._type = edge_type
         self._title = title
         self._created_at = created_at
-        self.login = login
+        self._login = login
         self._url = url
-        self.parent_url = parent_url
+        self._parent_url = parent_url
 
     def source(self) -> str:
         """
         Return the source of the edge, which is the login of the user who created it.
         """
-        return self.login
+        return self._login
 
     def target(self) -> str:
         """
         Return the target of the edge, which is the URL of the GitHub object.
         """
-        if self.parent_url:
-            return self.parent_url
+        if self._parent_url:
+            return self._parent_url
         return self._url
 
     def type(self) -> str:
@@ -95,4 +95,4 @@ class Edge:
         Returns:
             String representation of the edge
         """
-        return f"Edge(type={self._type}, title={self._title}, created_at={self._created_at}, login={self.login}, url={self._url}, parent_url={self.parent_url})"
+        return f"Edge(type={self._type}, title={self._title}, created_at={self._created_at}, login={self._login}, url={self._url}, parent_url={self._parent_url})"
