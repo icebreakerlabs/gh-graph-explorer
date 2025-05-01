@@ -71,7 +71,7 @@ class Neo4jLoader(Loader):
             self.driver.close()
             self.driver = None
 
-    def load_data(self) -> Generator[Dict[str, Any]]:
+    def load_data(self) -> Generator[Dict[str, Any], None, None]:
         """
         Execute query and load relationships from Neo4j.
 

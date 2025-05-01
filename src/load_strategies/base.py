@@ -12,7 +12,7 @@ class Loader(ABC):
     """
 
     @abstractmethod
-    def load_data(self) -> Generator[Dict[str, Any]]:
+    def load_data(self) -> Generator[Dict[str, Any], None, None]:
         """
         Load data from the source and return it as a list of relationship dictionaries.
 

@@ -40,7 +40,7 @@ class CSVLoader(Loader):
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"CSV file not found: {filepath}")
 
-    def load_data(self) -> Generator[Dict[str, Any]]:
+    def load_data(self) -> Generator[Dict[str, Any], None, None]:
         """
         Load relationships from the CSV file.
 
