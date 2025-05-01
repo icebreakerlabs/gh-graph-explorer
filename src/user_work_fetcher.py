@@ -18,6 +18,7 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
           title
           createdAt
           url
+          bodyText
         }
       }
     }
@@ -32,11 +33,13 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
           author {
             login
           }
+          bodyText
           reviews(first: 10, author:$username) {
             nodes {
               state
               createdAt
               url
+              bodyText
             }
           }
         }
@@ -51,6 +54,7 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
         comments(last:30) {
           nodes {
             createdAt
+            bodyText
             author {
               login
             }
@@ -70,6 +74,7 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
         createdAt
         number
         url
+        bodyText
         repository {
           nameWithOwner
         }
@@ -103,6 +108,7 @@ fragment repo on Repository {
     issues(last: 20, filterBy: {createdBy: $username, since: $sinceIso}, orderBy:{ field: CREATED_AT, direction:DESC }) {
       nodes {
         createdAt
+        bodyText
         title
         url
       }
