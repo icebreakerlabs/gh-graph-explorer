@@ -21,6 +21,18 @@ class Loader(ABC):
         """
         pass
 
+    def get_bipartite(self, node: str) -> int:
+        """
+        Determine the bipartite group of a node.
+
+        Args:
+            node: Node identifier
+
+        Returns:
+            Integer representing the bipartite group
+        """
+        return 0 if node.startswith("https://") else 1
+
     def create_graph(self) -> nx.MultiGraph:
         """
         Creates a networkx MultiGraph from the loaded data.
@@ -30,11 +42,8 @@ class Loader(ABC):
         """
         G = nx.MultiGraph()
 
-        # Load relationships from the data source
-        relationships = self.load_data()
-
         # Add each relationship to the graph
-        for rel in relationships:
+        for rel in self.load_data():
             source = rel.get("source")
             target = rel.get("target")
 
@@ -43,6 +52,8 @@ class Loader(ABC):
                 continue
 
             # Create edge with all attributes from the relationship
+            G.add_node(source, bipartite=self.get_bipartite(source))
+            G.add_node(target, bipartite=self.get_bipartite(target))
             G.add_edge(
                 source,
                 target,
