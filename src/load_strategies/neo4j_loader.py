@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Generator
 from neo4j import GraphDatabase
 from .base import Loader
 
@@ -71,7 +71,7 @@ class Neo4jLoader(Loader):
             self.driver.close()
             self.driver = None
 
-    def load_data(self) -> List[Dict[str, Any]]:
+    def load_data(self) -> Generator[Dict[str, Any]]:
         """
         Execute query and load relationships from Neo4j.
 
@@ -84,7 +84,6 @@ class Neo4jLoader(Loader):
             with self.driver.session() as session:
                 # Execute the query
                 result = session.run(self.query, self.params)
-                relationships = []
 
                 # Process each record
                 for record in result:
@@ -101,9 +100,8 @@ class Neo4jLoader(Loader):
                         for key, value in properties.items():
                             rel[key] = value
 
-                    relationships.append(rel)
+                    yield rel
 
-                return relationships
 
         finally:
             self._close()

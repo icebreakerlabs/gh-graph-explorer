@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import networkx as nx
-from typing import Dict, Any, List
-
+from typing import Dict, Any, Generator
 
 class Loader(ABC):
     """
@@ -13,7 +12,7 @@ class Loader(ABC):
     """
 
     @abstractmethod
-    def load_data(self) -> List[Dict[str, Any]]:
+    def load_data(self) -> Generator[Dict[str, Any]]:
         """
         Load data from the source and return it as a list of relationship dictionaries.
 

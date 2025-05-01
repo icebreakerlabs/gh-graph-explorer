@@ -1,5 +1,5 @@
 import csv
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Generator
 import os
 from .base import Loader
 
@@ -40,15 +40,13 @@ class CSVLoader(Loader):
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"CSV file not found: {filepath}")
 
-    def load_data(self) -> List[Dict[str, Any]]:
+    def load_data(self) -> Generator[Dict[str, Any]]:
         """
         Load relationships from the CSV file.
 
         Returns:
             List of dictionaries, each representing a relationship
         """
-        relationships = []
-
         with open(self.filepath, "r", newline="", encoding=self.encoding) as csvfile:
             # Use DictReader to automatically use column headers
             reader = csv.DictReader(csvfile, delimiter=self.delimiter)
@@ -72,8 +70,5 @@ class CSVLoader(Loader):
                 # Skip rows where source or target is empty
                 if not row[self.source_col] or not row[self.target_col]:
                     continue
-
-                # Add all columns as attributes
-                relationships.append(row)
-
-        return relationships
+                yield row
+        
