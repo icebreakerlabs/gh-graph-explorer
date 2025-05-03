@@ -1,7 +1,7 @@
 import networkx as nx
+from networkx.algorithms import bipartite
 from typing import Optional, Dict, List, Set, Any
 from .load_strategies import Loader
-from collections import Counter
 
 
 class GraphAnalyzer:
@@ -144,6 +144,7 @@ class GraphAnalyzer:
             disconnected_nodes = [
                 n for n in self.graph.nodes() if n not in largest_component
             ]
+
         else:
             disconnected_nodes = []
 
@@ -157,6 +158,20 @@ class GraphAnalyzer:
         min_cut = nx.minimum_node_cut(largest_component_graph)
         connectivity_metrics["minimum_node_cut"] = list(min_cut)
         connectivity_metrics["min_cut_size"] = len(min_cut)
+
+        # Bipartite analysis
+        top_nodes = {n for n, d in largest_component_graph.nodes(data=True) if d["bipartite"] == 0}
+        bottom_nodes = set(largest_component_graph) - top_nodes
+
+        people_graph = bipartite.projected_graph(nx.Graph(largest_component_graph), bottom_nodes)
+        people_betweeness = nx.betweenness_centrality(people_graph, k=10, endpoints=True)
+
+        top_people_by_betweeness = [
+            (n, c) for n, c in people_betweeness.items()
+        ]
+        top_people_by_betweeness = sorted(
+            top_people_by_betweeness, key=lambda x: x[1], reverse=True
+        )[:5]
 
         # Relationship types distribution
         rel_types = {}
@@ -203,4 +218,8 @@ class GraphAnalyzer:
             },
             "connectivity_metrics": connectivity_metrics,
             "relationship_types_distribution": rel_types,
+            "top_people_by_betweeness":  [
+                {"user": user, "centrality": centrality}
+                for user, centrality in top_people_by_betweeness
+            ],
         }
