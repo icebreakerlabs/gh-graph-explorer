@@ -19,11 +19,10 @@ class EdgeFactory:
         """
         self.data = data
         self.username = username
-        self.at_mention_pattern = r'(?<!\w)@(\w+)'
-    
+        self.at_mention_pattern = r"(?<!\w)@([\w\/]+)"
+
     def extract_mentioned_users(self, text: str) -> List[str]:
         return list(findall(self.at_mention_pattern, text))
-
 
     def process_issues(self) -> Generator[Edge, None, None]:
         if self.data.get("repository", {}).get("issues", {}).get("nodes"):
@@ -50,7 +49,6 @@ class EdgeFactory:
                     )
                     yield edge
 
-
     def process_issue_comments(self) -> Generator[Edge, None, None]:
         for issue in self.data.get("issueComments", {}).get("nodes", []):
             if issue.get("comments", {}).get("nodes"):
@@ -64,8 +62,10 @@ class EdgeFactory:
                         parent_url=issue.get("url"),
                     )
                     yield edge
-                    
-                    for mention in self.extract_mentioned_users(comment.get("bodyText", "")):
+
+                    for mention in self.extract_mentioned_users(
+                        comment.get("bodyText", "")
+                    ):
                         edge = Edge(
                             edge_type="issue_comment_mentioned",
                             title=comment.get("title"),
@@ -75,7 +75,6 @@ class EdgeFactory:
                             parent_url=issue.get("url"),
                         )
                         yield edge
-
 
     def proccess_prs(self) -> Generator[Edge, None, None]:
         if self.data.get("prsCreated", {}).get("edges"):
@@ -128,7 +127,6 @@ class EdgeFactory:
                     )
                     yield edge
 
-
     def process_discussions(self) -> Generator[Edge, None, None]:
         if self.data.get("discussionsCreated", {}).get("nodes"):
             for discussion in self.data["discussionsCreated"]["nodes"]:
@@ -143,7 +141,9 @@ class EdgeFactory:
                 )
                 yield edge
 
-                for mention in self.extract_mentioned_users(discussion.get("bodyText", "")):
+                for mention in self.extract_mentioned_users(
+                    discussion.get("bodyText", "")
+                ):
                     edge = Edge(
                         edge_type="discussion_mentioned",
                         title=discussion.get("title"),
@@ -153,7 +153,6 @@ class EdgeFactory:
                         parent_url=None,
                     )
                     yield edge
-
 
     def process_discussion_comments(self) -> Generator[Edge, None, None]:
         """
@@ -174,7 +173,9 @@ class EdgeFactory:
                 )
                 yield edge
 
-                for mention in self.extract_mentioned_users(comment.get("bodyText", "")):
+                for mention in self.extract_mentioned_users(
+                    comment.get("bodyText", "")
+                ):
                     edge = Edge(
                         edge_type="discussion_comment_mentioned",
                         title=discussion.get("title"),
@@ -198,5 +199,3 @@ class EdgeFactory:
         yield from self.process_pr_reviews()
         yield from self.process_discussions()
         yield from self.process_discussion_comments()
-
- 
