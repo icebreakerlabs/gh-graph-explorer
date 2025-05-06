@@ -25,29 +25,30 @@ class EdgeFactory:
         return list(findall(self.at_mention_pattern, text))
 
     def process_issues(self) -> Generator[Edge, None, None]:
-        if self.data.get("repository", {}).get("issues", {}).get("nodes"):
-            for issue in self.data["repository"]["issues"]["nodes"]:
-                url = issue.get("url")
+        for edge in self.data.get("issuesCreated", {}).get("edges", {}):
+            issue = edge.get("node", {})
+            import pdb; pdb.set_trace()
+            url = issue.get("url")
+            edge = Edge(
+                edge_type="issue_created",
+                title=issue.get("title"),
+                created_at=issue.get("createdAt"),
+                login=self.username,
+                url=url,
+                parent_url=None,
+            )
+            yield edge
+
+            for mention in self.extract_mentioned_users(issue.get("bodyText", "")):
                 edge = Edge(
-                    edge_type="issue_created",
+                    edge_type="issue_mentioned",
                     title=issue.get("title"),
                     created_at=issue.get("createdAt"),
-                    login=self.username,
+                    login=mention,
                     url=url,
                     parent_url=None,
                 )
                 yield edge
-
-                for mention in self.extract_mentioned_users(issue.get("bodyText", "")):
-                    edge = Edge(
-                        edge_type="issue_mentioned",
-                        title=issue.get("title"),
-                        created_at=issue.get("createdAt"),
-                        login=mention,
-                        url=url,
-                        parent_url=None,
-                    )
-                    yield edge
 
     def process_issue_comments(self) -> Generator[Edge, None, None]:
         for issue in self.data.get("issueComments", {}).get("nodes", []):

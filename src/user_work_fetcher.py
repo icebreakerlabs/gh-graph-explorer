@@ -7,11 +7,26 @@ from gql.transport.aiohttp import AIOHTTPTransport
 
 # Define the GraphQL query as a string
 USER_WORK_QUERY = """
-query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: DateTime!, $prsCreatedQuery:String!, $prContributionsQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!) {
-  repository(owner: $owner, name: $repo) {
-      ...repo
+query getUserWork($username:String!, $issuesCreatedQuery:String!, $prsCreatedQuery:String!, $prContributionsQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!) {
+  issuesCreated:search(type: ISSUE, query: $issuesCreatedQuery, first: 10) {
+    edges {
+      node {
+        ... on Issue {
+          createdAt
+          bodyText
+          title
+          url
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
   }
-  prsCreated:search(type: ISSUE, query: $prsCreatedQuery, first: 20) {
+  prsCreated:search(type: ISSUE, query: $prsCreatedQuery, last: 1) {
     edges {
       node {
         ... on PullRequest {
@@ -23,7 +38,7 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
       }
     }
   }
-  prReviewsAndCommits:search(type: ISSUE, query: $prContributionsQuery, first: 20) {
+  prReviewsAndCommits:search(type: ISSUE, query: $prContributionsQuery, first: 10) {
     edges {
       node {
         ... on PullRequest {
@@ -34,7 +49,7 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
             login
           }
           bodyText
-          reviews(first: 10, author:$username) {
+          reviews(first: 100, author:$username) {
             nodes {
               state
               createdAt
@@ -46,12 +61,12 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
       }
     }
   }
-  issueComments:search(type: ISSUE, query: $issueCommentsQuery, first: 50) {
+  issueComments:search(type: ISSUE, query: $issueCommentsQuery, first: 10) {
     nodes {
       ... on Issue {
         title
         url
-        comments(last:30) {
+        comments(first: 10) {
           nodes {
             createdAt
             bodyText
@@ -64,7 +79,7 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
       }
     }
   }
-  discussionsCreated:search(type: DISCUSSION, query: $discussionsCreatedQuery, first: 20) {
+  discussionsCreated:search(type: DISCUSSION, query: $discussionsCreatedQuery, first: 10) {
     nodes {
       ... on Discussion {
         author {
@@ -81,12 +96,12 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
       }
     }
   }
-  discussionComments:search(type: DISCUSSION, query: $discussionsInvolvedQuery, first: 20) {
+  discussionComments:search(type: DISCUSSION, query: $discussionsInvolvedQuery, first: 10) {
     nodes {
       ... on Discussion {
         title
         url
-        comments(last:30) {
+        comments(first: 10) {
           nodes {
               author {
               login
@@ -103,17 +118,6 @@ query getUserWork($username:String!, $owner:String!, $repo:String!, $sinceIso: D
     }
   }
 }
-
-fragment repo on Repository {
-    issues(last: 20, filterBy: {createdBy: $username, since: $sinceIso}, orderBy:{ field: CREATED_AT, direction:DESC }) {
-      nodes {
-        createdAt
-        bodyText
-        title
-        url
-      }
-    }
-  }
 """
 
 
@@ -148,6 +152,13 @@ class UserWorkFetcher:
     ) -> str:
         """Build query for PRs created by the user"""
         return f"author:{username} is:pr updated:>={since_date.strftime('%Y-%m-%d')}"
+
+
+    def _build_issues_created_query(
+        self, username: str, since_date: datetime.datetime
+    ) -> str:
+        """Build query for Issues created by the user"""
+        return f"author:{username} is:issue updated:>={since_date.strftime('%Y-%m-%d')}"
 
     def _build_pr_contributions_query(
         self, username: str, since_date: datetime.datetime
@@ -211,6 +222,10 @@ class UserWorkFetcher:
         prs_created_query = name_with_owner_query + self._build_prs_created_query(
             username, since_date
         )
+
+        issues_created_query = name_with_owner_query + self._build_issues_created_query(
+            username, since_date)
+
         pr_contributions_query = (
             name_with_owner_query
             + self._build_pr_contributions_query(username, since_date)
@@ -230,9 +245,8 @@ class UserWorkFetcher:
         # Execute the query with built parameters
         return await self.execute_query(
             username=username,
-            owner=owner,
-            repo=repo,
             since_iso=since_iso,
+            issues_created_query=issues_created_query,
             prs_created_query=prs_created_query,
             pr_contributions_query=pr_contributions_query,
             issue_comments_query=issue_comments_query,
@@ -243,9 +257,8 @@ class UserWorkFetcher:
     async def execute_query(
         self,
         username: str,
-        owner: str,
-        repo: str,
         since_iso: str,
+        issues_created_query: str,
         prs_created_query: str,
         pr_contributions_query: str,
         issue_comments_query: str,
@@ -257,9 +270,9 @@ class UserWorkFetcher:
 
         Args:
             username: GitHub username
-            owner: Repository owner
             repo: Repository name
             since_iso: DateTime string in ISO format for filtering by date
+            issues_created_query: Search query for issues created by user
             prs_created_query: Search query for PRs created by user
             pr_contributions_query: Search query for PRs the user contributed to
             issue_comments_query: Search query for issues with user comments
@@ -271,9 +284,8 @@ class UserWorkFetcher:
         """
         variables = {
             "username": username,
-            "owner": owner,
-            "repo": repo,
             "sinceIso": since_iso,
+            "issuesCreatedQuery": issues_created_query,
             "prsCreatedQuery": prs_created_query,
             "prContributionsQuery": pr_contributions_query,  # Add missing parameter
             "issueCommentsQuery": issue_comments_query,
