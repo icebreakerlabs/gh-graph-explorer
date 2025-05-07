@@ -63,6 +63,22 @@ uv run main.py analyze --source neo4j --neo4j-query "MATCH (source)-[rel]->(targ
 }
 
 ### Useful queries 
+Filter by date
 ```neo4j
 MATCH (source)-[rel:PR_REVIEW_APPROVED]->(target)  WHERE rel.created_at > "2025-04-15" RETURN * limit 100
+```
+
+Create a user Projection 
+```neo4j
+
+MATCH (u1:User)-[] -> (g:GitHubObject) <- []-(u2:User)
+WHERE u1.name < u2.name
+WITH u1, u2, collect(g.name) as gitobjects, count(g) as weight
+MERGE (u1)-[r:CONNECTED]->(u2)
+SET r.name = gitobjects, r.weight = weight
+```
+
+View the user projection
+```neo4j
+MATCH p = (u1:User)-[]-(u2:User) Return p limit 200
 ```
