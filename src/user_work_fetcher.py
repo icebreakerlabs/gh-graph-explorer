@@ -8,7 +8,7 @@ from gql.transport.aiohttp import AIOHTTPTransport
 # Define the GraphQL query as a string
 USER_WORK_QUERY = """
 query getUserWork($username:String!, $issuesCreatedQuery:String!, $prsCreatedQuery:String!, $prContributionsQuery:String!, $issueCommentsQuery:String!, $discussionsCreatedQuery:String!, $discussionsInvolvedQuery:String!) {
-  issuesCreated:search(type: ISSUE, query: $issuesCreatedQuery, first: 10) {
+  issuesCreated:search(type: ISSUE, query: $issuesCreatedQuery, first: 20) {
     edges {
       node {
         ... on Issue {
@@ -26,7 +26,7 @@ query getUserWork($username:String!, $issuesCreatedQuery:String!, $prsCreatedQue
       hasPreviousPage
     }
   }
-  prsCreated:search(type: ISSUE, query: $prsCreatedQuery, last: 1) {
+  prsCreated:search(type: ISSUE, query: $prsCreatedQuery, first: 20) {
     edges {
       node {
         ... on PullRequest {
@@ -38,7 +38,7 @@ query getUserWork($username:String!, $issuesCreatedQuery:String!, $prsCreatedQue
       }
     }
   }
-  prReviewsAndCommits:search(type: ISSUE, query: $prContributionsQuery, first: 10) {
+  prReviewsAndCommits:search(type: ISSUE, query: $prContributionsQuery, first: 20) {
     edges {
       node {
         ... on PullRequest {
@@ -49,7 +49,7 @@ query getUserWork($username:String!, $issuesCreatedQuery:String!, $prsCreatedQue
             login
           }
           bodyText
-          reviews(first: 100, author:$username) {
+          reviews(first: 20, author:$username) {
             nodes {
               state
               createdAt
@@ -61,12 +61,12 @@ query getUserWork($username:String!, $issuesCreatedQuery:String!, $prsCreatedQue
       }
     }
   }
-  issueComments:search(type: ISSUE, query: $issueCommentsQuery, first: 10) {
+  issueComments:search(type: ISSUE, query: $issueCommentsQuery, first: 20) {
     nodes {
       ... on Issue {
         title
         url
-        comments(first: 10) {
+        comments(first: 20) {
           nodes {
             createdAt
             bodyText
@@ -79,7 +79,7 @@ query getUserWork($username:String!, $issuesCreatedQuery:String!, $prsCreatedQue
       }
     }
   }
-  discussionsCreated:search(type: DISCUSSION, query: $discussionsCreatedQuery, first: 10) {
+  discussionsCreated:search(type: DISCUSSION, query: $discussionsCreatedQuery, first: 20) {
     nodes {
       ... on Discussion {
         author {
@@ -96,12 +96,12 @@ query getUserWork($username:String!, $issuesCreatedQuery:String!, $prsCreatedQue
       }
     }
   }
-  discussionComments:search(type: DISCUSSION, query: $discussionsInvolvedQuery, first: 10) {
+  discussionComments:search(type: DISCUSSION, query: $discussionsInvolvedQuery, first: 20) {
     nodes {
       ... on Discussion {
         title
         url
-        comments(first: 10) {
+        comments(first: 20) {
           nodes {
               author {
               login
