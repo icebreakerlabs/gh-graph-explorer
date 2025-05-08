@@ -40,18 +40,19 @@ runs:
     - name: Install uv
       shell: bash
       run: |
-        curl -sSf https://astral.sh/uv/install.sh | bash
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        curl -sSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.uv/bin" >> $GITHUB_PATH
+        export PATH="$HOME/.uv/bin:$PATH"
 
     - name: Install dependencies
       shell: bash
       run: |
-        uv pip install -e .
+        $HOME/.uv/bin/uv pip install -e .
 
     - name: Run collection script
       shell: bash
       run: |
-        uv run main.py collect --repos ${{ inputs.repos_file }} --days ${{ inputs.days }} --output csv --output-file ${{ inputs.output_file }}
+        $HOME/.uv/bin/uv run main.py collect --repos ${{ inputs.repos_file }} --days ${{ inputs.days }} --output csv --output-file ${{ inputs.output_file }}
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 
