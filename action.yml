@@ -36,23 +36,18 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-
-    - name: Install uv
-      shell: bash
-      run: |
-        curl -sSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.uv/bin" >> $GITHUB_PATH
-        export PATH="$HOME/.uv/bin:$PATH"
+        cache: 'pip'
 
     - name: Install dependencies
       shell: bash
       run: |
-        $HOME/.uv/bin/uv pip install -e .
+        python -m pip install --upgrade pip
+        pip install -e .
 
     - name: Run collection script
       shell: bash
       run: |
-        $HOME/.uv/bin/uv run main.py collect --repos ${{ inputs.repos_file }} --days ${{ inputs.days }} --output csv --output-file ${{ inputs.output_file }}
+        python main.py collect --repos ${{ inputs.repos_file }} --days ${{ inputs.days }} --output csv --output-file ${{ inputs.output_file }}
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 
