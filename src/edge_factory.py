@@ -27,7 +27,6 @@ class EdgeFactory:
     def process_issues(self) -> Generator[Edge, None, None]:
         for edge in self.data.get("issuesCreated", {}).get("edges", {}):
             issue = edge.get("node", {})
-            import pdb; pdb.set_trace()
             url = issue.get("url")
             edge = Edge(
                 edge_type="issue_created",
