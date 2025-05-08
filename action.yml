@@ -1,0 +1,62 @@
+name: 'GitHub Graph Data Collector'
+description: 'Collects GitHub repository data and saves it to a CSV file'
+author: 'Gabriel Ramirez'
+branding:
+  icon: 'git-branch'
+  color: 'blue'
+
+inputs:
+  github_token:
+    description: 'GitHub token with read access to repos'
+    required: true
+  repos_file:
+    description: 'Path to the JSON file containing repository information'
+    required: true
+    default: 'repos.json'
+  days:
+    description: 'Number of days to look back'
+    required: false
+    default: '1'
+  output_file:
+    description: 'Output file path for CSV'
+    required: false
+    default: 'github_data.csv'
+  commit_message:
+    description: 'Commit message for the CSV file update'
+    required: false
+    default: 'Update GitHub repository data'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      shell: bash
+      run: |
+        curl -sSf https://astral.sh/uv/install.sh | bash
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        uv pip install -e .
+
+    - name: Run collection script
+      shell: bash
+      run: |
+        uv run main.py collect --repos ${{ inputs.repos_file }} --days ${{ inputs.days }} --output csv --output-file ${{ inputs.output_file }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+
+    - name: Commit changes
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: ${{ inputs.commit_message }}
+        file_pattern: ${{ inputs.output_file }}

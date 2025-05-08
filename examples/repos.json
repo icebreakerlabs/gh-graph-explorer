@@ -1,0 +1,17 @@
+[
+  {
+    "username": "dependabot",
+    "owner": "octocat",
+    "repo": "Hello-World"
+  },
+  {
+    "username": "user1",
+    "owner": "organization1",
+    "repo": "repo-name-1"
+  },
+  {
+    "username": "user2",
+    "owner": "organization2",
+    "repo": "repo-name-2"
+  }
+]

@@ -41,6 +41,77 @@ If you want to customize the Neo4j query for analysis, you can also use the --ne
 uv run main.py analyze --source neo4j --neo4j-query "MATCH (source)-[rel]->(target)  WHERE rel.created_at > \"2025-04-01\" RETURN source.name AS source, target.url AS target, type(rel) AS type, properties(rel) AS properties" --neo4j-uri bolt://localhost:7687
 ```
 
+### Using the GitHub Action
+
+You can use this tool as a GitHub Action in your own repositories. This will automatically collect GitHub repository data and commit the results to your repository.
+
+#### Setting up the Action
+
+Create a `.github/workflows/collect-github-data.yml` file in your repository with the following content:
+
+```yaml
+name: Collect GitHub Graph Data
+
+on:
+  # Run daily at midnight
+  schedule:
+    - cron: '0 0 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  collect-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run GitHub Graph Data Collector
+        uses: yourusername/gh-graph-explore@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repos_file: 'repos.json'
+          days: '1'
+          output_file: 'github_data.csv'
+          commit_message: 'Update GitHub repository data [Skip CI]'
+```
+
+#### Creating a repos.json file
+
+Create a `repos.json` file in the root of your repository with the following structure:
+
+```json
+[
+  {
+    "username": "dependabot",
+    "owner": "octocat",
+    "repo": "Hello-World"
+  },
+  {
+    "username": "user1",
+    "owner": "organization1",
+    "repo": "repo-name-1"
+  },
+  {
+    "username": "user2",
+    "owner": "organization2",
+    "repo": "repo-name-2"
+  }
+]
+```
+
+#### Action Inputs
+
+The GitHub Action accepts the following inputs:
+
+- `github_token`: GitHub token with read access to repos (required)
+- `repos_file`: Path to the JSON file containing repository information (default: `repos.json`)
+- `days`: Number of days to look back (default: `1`)
+- `output_file`: Output file path for CSV (default: `github_data.csv`)
+- `commit_message`: Commit message for the CSV file update (default: `Update GitHub repository data`)
+
 ### Setup with Claude Desktop
 {
     "mcpServers": {

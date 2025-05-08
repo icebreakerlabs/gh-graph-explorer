@@ -1,0 +1,26 @@
+name: Collect GitHub Graph Data
+
+on:
+  # Run daily at midnight
+  schedule:
+    - cron: '0 0 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  collect-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run GitHub Graph Data Collector
+        uses: yourusername/gh-graph-explore@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repos_file: 'repos.json'
+          days: '1'
+          output_file: 'github_data.csv'
+          commit_message: 'Update GitHub repository data [Skip CI]'
