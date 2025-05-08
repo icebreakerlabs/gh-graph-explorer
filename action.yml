@@ -49,7 +49,7 @@ runs:
     - name: Run collection script
       shell: bash
       run: |
-        python main.py collect --repos ${{ inputs.repos_file }} --days ${{ inputs.days }} --output csv --output-file ${{ inputs.output_file }}
+        python ${{ github.action_path }}/main.py collect --repos ${{ inputs.repos_file }} --days ${{ inputs.days }} --output csv --output-file ${{ inputs.output_file }}
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 
