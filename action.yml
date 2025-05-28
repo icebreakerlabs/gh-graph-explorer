@@ -14,9 +14,15 @@ inputs:
     required: true
     default: 'repos.json'
   days:
-    description: 'Number of days to look back'
+    description: 'Number of days to look back (used only if since_iso is not provided)'
     required: false
     default: '1'
+  since_iso:
+    description: 'Start date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)'
+    required: false
+  until_iso:
+    description: 'End date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)'
+    required: false
   output_file:
     description: 'Output file path for CSV'
     required: false
@@ -50,7 +56,14 @@ runs:
       shell: bash
       run: |
         export GITHUB_TOKEN="${{ inputs.github_token }}"
-        python ${{ github.action_path }}/main.py collect --repos ${{ inputs.repos_file }} --days ${{ inputs.days }} --output csv --output-file ${{ inputs.output_file }}
+        COMMAND="python ${{ github.action_path }}/main.py collect --repos ${{ inputs.repos_file }} --days ${{ inputs.days }} --output csv --output-file ${{ inputs.output_file }}"
+        if [ -n "${{ inputs.since_iso }}" ]; then
+          COMMAND="$COMMAND --since-iso ${{ inputs.since_iso }}"
+        fi
+        if [ -n "${{ inputs.until_iso }}" ]; then
+          COMMAND="$COMMAND --until-iso ${{ inputs.until_iso }}"
+        fi
+        $COMMAND
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 

@@ -1,4 +1,5 @@
 from typing import List, Dict, Any, Optional
+import datetime
 from .user_work_fetcher import UserWorkFetcher
 from .edge_factory import EdgeFactory
 from .save_strategies import SaveStrategy, PrintSave
@@ -11,17 +12,26 @@ class Collector:
 
     def __init__(
         self,
-        days: int = 7,
+        since_iso: str = None,
+        until_iso: str = None,
         save_strategy: Optional[SaveStrategy] = None,
     ):
         """
-        Initialize the Collector with the number of days to look back.
+        Initialize the Collector with optional date range.
 
         Args:
-            days: Number of days to look back for GitHub activity (default: 7)
+            since_iso: DateTime string in ISO format for start date filtering (optional, defaults to 7 days ago)
+            until_iso: DateTime string in ISO format for end date filtering (optional, defaults to now)
             save_strategy: Strategy to use for saving edges. If None, uses PrintSave by default.
         """
-        self.days = days
+        # Set default since_iso to 7 days ago if not provided
+        if since_iso is None:
+            today = datetime.datetime.now(datetime.timezone.utc)
+            since_date = today - datetime.timedelta(days=7)
+            since_iso = since_date.isoformat()
+
+        self.since_iso = since_iso
+        self.until_iso = until_iso
         self.fetcher = UserWorkFetcher()
         self.save_strategy = save_strategy if save_strategy else PrintSave()
 
@@ -57,12 +67,18 @@ class Collector:
                     username=repo_info["username"],
                     owner=repo_info["owner"],
                     repo=repo_info["repo"],
-                    days=self.days,
+                    since_iso=self.since_iso,
+                    until_iso=self.until_iso,
                 )
 
                 for edge in EdgeFactory(
-                    data=result, username=repo_info["username"]
+                    data=result,
+                    username=repo_info["username"],
+                    since_iso=self.since_iso,
+                    until_iso=self.until_iso,
                 ).generate_edges():
+
+
                     self.save_strategy.save(edge)
 
                 results[repo_id] = {"success": True}

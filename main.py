@@ -21,7 +21,14 @@ def parse_arguments():
     # Collection mode parser
     collect_parser = subparsers.add_parser("collect", help="Collect GitHub data")
     collect_parser.add_argument(
-        "--days", type=int, default=7, help="Number of days to look back (default: 7)"
+        "--since-iso",
+        type=str,
+        help="Start date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)",
+    )
+    collect_parser.add_argument(
+        "--until-iso",
+        type=str,
+        help="End date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)",
     )
     collect_parser.add_argument(
         "--repos",
@@ -196,7 +203,8 @@ async def collect_data(args):
 
     # Create collector with the chosen save strategy
     collector = Collector(
-        days=args.days,
+        since_iso=getattr(args, "since_iso", None),
+        until_iso=getattr(args, "until_iso", None),
         save_strategy=save_strategy,
     )
 

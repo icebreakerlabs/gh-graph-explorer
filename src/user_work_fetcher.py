@@ -148,41 +148,64 @@ class UserWorkFetcher:
         self.query = gql(USER_WORK_QUERY)
 
     def _build_prs_created_query(
-        self, username: str, since_date: datetime.datetime
+        self,
+        username: str,
+        since_date: datetime.datetime,
+        until_date: datetime.datetime,
     ) -> str:
         """Build query for PRs created by the user"""
-        return f"author:{username} is:pr updated:>={since_date.strftime('%Y-%m-%d')}"
-
+        query = f"author:{username} is:pr updated:{since_date.strftime('%Y-%m-%d')}..{until_date.strftime('%Y-%m-%d')}"
+        return query
 
     def _build_issues_created_query(
-        self, username: str, since_date: datetime.datetime
+        self,
+        username: str,
+        since_date: datetime.datetime,
+        until_date: datetime.datetime,
     ) -> str:
         """Build query for Issues created by the user"""
-        return f"author:{username} is:issue updated:>={since_date.strftime('%Y-%m-%d')}"
+        query = f"author:{username} is:issue updated:{since_date.strftime('%Y-%m-%d')}..{until_date.strftime('%Y-%m-%d')}"
+        return query
 
     def _build_pr_contributions_query(
-        self, username: str, since_date: datetime.datetime
+        self,
+        username: str,
+        since_date: datetime.datetime,
+        until_date: datetime.datetime,
     ) -> str:
         """Build query for PRs the user contributed to but didn't author"""
-        return f"involves:{username} is:pr updated:>={since_date.strftime('%Y-%m-%d')}"  # -author:{username}
+        query = f"involves:{username} is:pr updated:{since_date.strftime('%Y-%m-%d')}..{until_date.strftime('%Y-%m-%d')}"
+        return query
 
     def _build_issue_comments_query(
-        self, username: str, since_date: datetime.datetime
+        self,
+        username: str,
+        since_date: datetime.datetime,
+        until_date: datetime.datetime,
     ) -> str:
         """Build query for issues with user comments"""
-        return f"commenter:{username} is:issue updated:>={since_date.strftime('%Y-%m-%d')}"  # -author:{username}
+        query = f"commenter:{username} is:issue updated:{since_date.strftime('%Y-%m-%d')}..{until_date.strftime('%Y-%m-%d')}"
+        return query
 
     def _build_discussions_created_query(
-        self, username: str, since_date: datetime.datetime
+        self,
+        username: str,
+        since_date: datetime.datetime,
+        until_date: datetime.datetime,
     ) -> str:
         """Build query for discussions created by the user"""
-        return f"author:{username} is:discussion updated:>={since_date.strftime('%Y-%m-%d')}"
+        query = f"author:{username} is:discussion updated:{since_date.strftime('%Y-%m-%d')}..{until_date.strftime('%Y-%m-%d')}"
+        return query
 
     def _build_discussions_involved_query(
-        self, username: str, since_date: datetime.datetime
+        self,
+        username: str,
+        since_date: datetime.datetime,
+        until_date: datetime.datetime,
     ) -> str:
         """Build query for discussions the user is involved in but didn't create"""
-        return f"involves:{username} is:discussion updated:>={since_date.strftime('%Y-%m-%d')}"  # -author:{username}
+        query = f"involves:{username} is:discussion updated:{since_date.strftime('%Y-%m-%d')}..{until_date.strftime('%Y-%m-%d')}"
+        return query
 
     async def get(
         self,
@@ -190,7 +213,7 @@ class UserWorkFetcher:
         owner: str,
         repo: str,
         since_iso: str = None,
-        days: int = 30,
+        until_iso: str = None,
     ) -> dict:
         """
         Simplified method to get user's GitHub work data.
@@ -200,16 +223,17 @@ class UserWorkFetcher:
             owner: Repository owner
             repo: Repository name
             since_iso: DateTime string in ISO format for filtering by date
-                      (if None, will use current date minus days)
-            days: Number of days to look back if since_iso is not provided
+                      (if None, will default to 7 days ago)
+            until_iso: DateTime string in ISO format for filtering by date
+                      (if None, will default to now)
 
         Returns:
             The GraphQL query results as a dictionary
         """
-        # Calculate since_date if since_iso is not provided
+        # Calculate since_date if since_iso is not provided (default to 7 days ago)
         if since_iso is None:
-            today = datetime.datetime.now()
-            since_date = today - datetime.timedelta(days=days)
+            today = datetime.datetime.now(datetime.timezone.utc)
+            since_date = today - datetime.timedelta(days=7)
             since_iso = since_date.isoformat()
         else:
             # Parse the ISO string to a datetime object for building queries
@@ -217,35 +241,45 @@ class UserWorkFetcher:
                 since_iso.replace("Z", "+00:00")
             )
 
+        # Calculate until_date if until_iso is not provided (default to now)
+        if until_iso is None:
+            until_date = datetime.datetime.now(datetime.timezone.utc)
+            until_iso = until_date.isoformat()
+        else:
+            # Parse the ISO string to a datetime object for building queries
+            until_date = datetime.datetime.fromisoformat(
+                until_iso.replace("Z", "+00:00")
+            )
+
         # Build all query strings
         name_with_owner_query = f"repo:{owner}/{repo} "
         prs_created_query = name_with_owner_query + self._build_prs_created_query(
-            username, since_date
+            username, since_date, until_date
         )
 
         issues_created_query = name_with_owner_query + self._build_issues_created_query(
-            username, since_date)
+            username, since_date, until_date
+        )
 
         pr_contributions_query = (
             name_with_owner_query
-            + self._build_pr_contributions_query(username, since_date)
+            + self._build_pr_contributions_query(username, since_date, until_date)
         )
         issue_comments_query = name_with_owner_query + self._build_issue_comments_query(
-            username, since_date
+            username, since_date, until_date
         )
         discussions_created_query = (
             name_with_owner_query
-            + self._build_discussions_created_query(username, since_date)
+            + self._build_discussions_created_query(username, since_date, until_date)
         )
         discussions_involved_query = (
             name_with_owner_query
-            + self._build_discussions_involved_query(username, since_date)
+            + self._build_discussions_involved_query(username, since_date, until_date)
         )
 
         # Execute the query with built parameters
         return await self.execute_query(
             username=username,
-            since_iso=since_iso,
             issues_created_query=issues_created_query,
             prs_created_query=prs_created_query,
             pr_contributions_query=pr_contributions_query,
@@ -257,7 +291,6 @@ class UserWorkFetcher:
     async def execute_query(
         self,
         username: str,
-        since_iso: str,
         issues_created_query: str,
         prs_created_query: str,
         pr_contributions_query: str,
@@ -284,7 +317,6 @@ class UserWorkFetcher:
         """
         variables = {
             "username": username,
-            "sinceIso": since_iso,
             "issuesCreatedQuery": issues_created_query,
             "prsCreatedQuery": prs_created_query,
             "prContributionsQuery": pr_contributions_query,  # Add missing parameter

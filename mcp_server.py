@@ -80,7 +80,13 @@ def _validate_relationship_types(relationship_types):
 
 
 @mcp.tool("collect")
-async def collect(user: str, owner: str, repo: str, days: Optional[int] = 7) -> dict:
+async def collect(
+    user: str,
+    owner: str,
+    repo: str,
+    since_iso: Optional[str] = None,
+    until_iso: Optional[str] = None,
+) -> dict:
     """
     Collect GitHub data for specified users, repositories and time period.
 
@@ -88,16 +94,11 @@ async def collect(user: str, owner: str, repo: str, days: Optional[int] = 7) -> 
         - user: GitHub username (required)
         - owner: Repository owner (required)
         - repo: Repository name (required)
-        - days: Number of days to look back (default: 7)
+        - since_iso: Start date in ISO format (optional, defaults to 7 days ago)
+        - until_iso: End date in ISO format (optional, defaults to now)
     """
     # Validate required parameters
     if not all([user, owner, repo]):
-        return {}
-
-    # Parse days as integer
-    try:
-        days = int(days)
-    except ValueError:
         return {}
 
     # Create the repos config
@@ -110,7 +111,8 @@ async def collect(user: str, owner: str, repo: str, days: Optional[int] = 7) -> 
 
     # Create collector with Neo4j save strategy
     collector = Collector(
-        days=days,
+        since_iso=since_iso,
+        until_iso=until_iso,
         save_strategy=save_strategy,
     )
 
@@ -120,7 +122,6 @@ async def collect(user: str, owner: str, repo: str, days: Optional[int] = 7) -> 
     return {
         "message": f"Successfully processed repository {owner}/{repo} for user {user}",
         "results": results,
-        "days_collected": days,
     }
 
 

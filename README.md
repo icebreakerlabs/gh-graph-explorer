@@ -13,17 +13,25 @@
 1. load the csv file that was downloaded before
 
 
-### Collecting Data (Same as Before)
+### Collecting Data
 ```
-# Print output
+# Print output (default: last 7 days)
 uv run main.py collect --repos data/repos.json --days 30 --output print
 
 # CSV output
 uv run main.py collect --repos data/repos.json --days 30 --output csv --output-file github_data.csv
 
 # Neo4j output
-uv run main.py collect --repos data/repos.json --days 30 --output neo4j --neo4j-uri bolt://localhost:7687
+uv run main.py collect --repos data/repos.json --days 15 --output neo4j --neo4j-uri bolt://localhost:7687
+
+# Using specific date ranges instead of days (recommended for precise control)
+uv run main.py collect --repos data/repos.json --since-iso 2025-05-01 --until-iso 2025-05-20 --output csv --output-file github_data.csv
+
+# Using full ISO datetime format
+uv run main.py collect --repos data/repos.json --since-iso 2025-05-01T00:00:00 --until-iso 2025-05-20T23:59:59 --output neo4j
 ```
+
+**Note**: The `days` parameter is handled at the top level (CLI/MCP) and converted to date ranges internally. The core components use `since_iso` and `until_iso` with defaults of 7 days ago to now.
 
 ### Analyzing Data (New Functionality)
 ```
@@ -108,7 +116,9 @@ The GitHub Action accepts the following inputs:
 
 - `github_token`: GitHub token with read access to repos (required)
 - `repos_file`: Path to the JSON file containing repository information (default: `repos.json`)
-- `days`: Number of days to look back (default: `1`)
+- `days`: Number of days to look back (default: `1`, used only if `since_iso` is not provided)
+- `since_iso`: Start date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS) (optional)
+- `until_iso`: End date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS) (optional)
 - `output_file`: Output file path for CSV (default: `github_data.csv`)
 - `commit_message`: Commit message for the CSV file update (default: `Update GitHub repository data`)
 
