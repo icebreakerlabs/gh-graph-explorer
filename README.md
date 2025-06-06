@@ -16,22 +16,22 @@
 ### Collecting Data
 ```
 # Print output (default: last 7 days)
-uv run main.py collect --repos data/repos.json --days 30 --output print
+uv run main.py collect --repos data/repos.json --since-iso 2025-05-29 --until-iso 2025-06-05 --output print
 
 # CSV output
-uv run main.py collect --repos data/repos.json --days 30 --output csv --output-file github_data.csv
+uv run main.py collect --repos data/repos.json --since-iso 2025-05-29 --until-iso 2025-06-05 --output csv --output-file github_data.csv
 
 # Neo4j output
-uv run main.py collect --repos data/repos.json --days 15 --output neo4j --neo4j-uri bolt://localhost:7687
+uv run main.py collect --repos data/repos.json --since-iso 2025-05-22 --until-iso 2025-06-05 --output neo4j --neo4j-uri bolt://localhost:7687
 
-# Using specific date ranges instead of days (recommended for precise control)
+# Using specific date ranges (recommended for precise control)
 uv run main.py collect --repos data/repos.json --since-iso 2025-05-01 --until-iso 2025-05-20 --output csv --output-file github_data.csv
 
 # Using full ISO datetime format
 uv run main.py collect --repos data/repos.json --since-iso 2025-05-01T00:00:00 --until-iso 2025-05-20T23:59:59 --output neo4j
 ```
 
-**Note**: The `days` parameter is handled at the top level (CLI/MCP) and converted to date ranges internally. The core components use `since_iso` and `until_iso` with defaults of 7 days ago to now.
+**Note**: The CLI uses `--since-iso` and `--until-iso` to specify the date range for data collection. Both parameters accept either `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SS` formats. If not provided, the default is the last 7 days. The `--days` parameter is not supported in the CLI; use `--since-iso` and `--until-iso` for date control.
 
 ### Analyzing Data (New Functionality)
 ```
@@ -121,6 +121,8 @@ The GitHub Action accepts the following inputs:
 - `until_iso`: End date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS) (optional)
 - `output_file`: Output file path for CSV (default: `github_data.csv`)
 - `commit_message`: Commit message for the CSV file update (default: `Update GitHub repository data`)
+
+> **Note:** For CLI usage, use `--since-iso` and `--until-iso` as shown above. The `days` parameter is only relevant for the GitHub Action workflow.
 
 ### Setup with Claude Desktop
 {
