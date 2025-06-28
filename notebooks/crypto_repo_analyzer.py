@@ -59,8 +59,42 @@ class CryptoRepoAnalyzer:
         
         return pd.DataFrame(repos)
     
-    def select_diverse_repos(self, repos_df: pd.DataFrame, target_count: int = 25) -> List[Dict[str, str]]:
-        """Select diverse repositories from different ecosystems"""
+    def select_diverse_repos(self, repos_df: pd.DataFrame, target_count: int = 25, 
+                            manual_repos: List[Dict[str, str]] = None) -> List[Dict[str, str]]:
+        """
+        Select a diverse set of repositories from different ecosystems
+        
+        Args:
+            repos_df: DataFrame with repository data
+            target_count: Number of repositories to select
+            manual_repos: List of manually specified repos in format [{"owner": "owner", "repo": "repo", "ecosystem": "ecosystem"}]
+        """
+        # Start with manually specified repos if provided
+        selected_repos = []
+        if manual_repos:
+            print(f"Adding {len(manual_repos)} manually specified repositories...")
+            for repo_spec in manual_repos:
+                owner = repo_spec['owner']
+                repo_name = repo_spec['repo']
+                ecosystem = repo_spec.get('ecosystem', 'manual')
+                
+                selected_repos.append({
+                    'owner': owner,
+                    'repo': repo_name,
+                    'ecosystem': ecosystem,
+                    'url': f'https://github.com/{owner}/{repo_name}',
+                    'name': repo_name,
+                    'description': f'Manually added repository from {ecosystem}'
+                })
+                print(f"  Added: {owner}/{repo_name} ({ecosystem})")
+        
+        # If we already have enough repos from manual selection, return them
+        if len(selected_repos) >= target_count:
+            return selected_repos[:target_count]
+        
+        # Continue with automatic selection for remaining slots
+        remaining_count = target_count - len(selected_repos)
+        
         print("Selecting diverse crypto repositories...")
         
         # Get ecosystem counts (excluding 'General' and very large categories)
@@ -73,9 +107,6 @@ class CryptoRepoAnalyzer:
         suitable_ecosystems = ecosystem_counts[(ecosystem_counts >= 10) & (ecosystem_counts <= 50000)]
         print(f"Found {len(suitable_ecosystems)} suitable ecosystems")
         
-        selected_repos = []
-        repos_per_ecosystem = max(1, target_count // len(suitable_ecosystems.head(20)))
-        
         for ecosystem in suitable_ecosystems.head(20).index:
             ecosystem_repos = repos_df[repos_df['eco_name'] == ecosystem].copy()
             
@@ -84,7 +115,7 @@ class CryptoRepoAnalyzer:
             
             if len(ecosystem_repos) > 0:
                 # Sample repos from this ecosystem
-                sample_size = min(repos_per_ecosystem, len(ecosystem_repos))
+                sample_size = min(remaining_count, len(ecosystem_repos))
                 sampled = ecosystem_repos.sample(n=sample_size, random_state=42)
                 
                 for _, repo in sampled.iterrows():
@@ -689,16 +720,19 @@ class CryptoRepoAnalyzer:
         summary_df.to_csv(output_path, index=False)
         print(f"Exported analysis summary: {output_path}")
     
-    def run_full_analysis(self, months_back: int = 6, target_repo_count: int = 25):
+    def run_full_analysis(self, months_back: int = 6, target_repo_count: int = 25, 
+                         manual_repos: List[Dict[str, str]] = None):
         """Run the complete crypto repositories analysis"""
         print("Starting Crypto Repositories Social Network Analysis")
         print(f"Analysis period: {months_back} months")
         print(f"Target repositories: {target_repo_count}")
+        if manual_repos:
+            print(f"Manual repositories: {len(manual_repos)}")
         
         # Step 1: Load and select repositories
         print("\n1. Loading crypto repositories data...")
         repos_df = self.load_crypto_repos()
-        selected_repos = self.select_diverse_repos(repos_df, target_repo_count)
+        selected_repos = self.select_diverse_repos(repos_df, target_repo_count, manual_repos)
         
         # Step 2: Create configuration
         print("\n2. Creating repository configuration...")

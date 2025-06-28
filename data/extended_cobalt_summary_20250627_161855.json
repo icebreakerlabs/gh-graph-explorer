@@ -1,0 +1,33 @@
+{
+  "icebreakerlabs/cobalt": {
+    "user_count": 13,
+    "users": [
+      "james-dean1",
+      "esteez25",
+      "rolo-icebreaker",
+      "c-rothschild",
+      "eliperelman",
+      "jdille",
+      "tayyabmh",
+      "sinasab",
+      "alan-icebreaker",
+      "jack-icebreaker",
+      "devin-ai-integration[bot]",
+      "web3pm",
+      "tribixbite"
+    ]
+  },
+  "icebreakerlabs/columbo": {
+    "user_count": 8,
+    "users": [
+      "esteez25",
+      "rolo-icebreaker",
+      "c-rothschild",
+      "eliperelman",
+      "jdille",
+      "tayyabmh",
+      "alan-icebreaker",
+      "web3pm"
+    ]
+  }
+}

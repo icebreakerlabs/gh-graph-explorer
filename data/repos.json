@@ -1,8 +1,19 @@
 [
 
     {
-        "username": "geramirez",
+        "username": "c-rothschild",
         "owner": "geramirez",
         "repo": "gh-graph-explorer"
+    },
+    {
+        "username": "c-rothschild",
+        "owner": "icebreakerlabs",
+        "repo": "columbo"
+    },
+    {
+        "username": "eliperelman",
+        "owner": "icebreakerlabs",
+        "repo": "cobalt"
     }
+    
 ]

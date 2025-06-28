@@ -44,6 +44,9 @@ class ExtendedCobaltAnalyzer:
         self.repositories = [
             {'owner': 'icebreakerlabs', 'repo': 'cobalt'},
             {'owner': 'icebreakerlabs', 'repo': 'columbo'}
+            # Add more repositories here:
+            # {'owner': 'your-org', 'repo': 'your-repo'},
+            # {'owner': 'another-org', 'repo': 'another-repo'}
         ]
     
     def get_repo_contributors(self, owner: str, repo: str) -> List[str]:

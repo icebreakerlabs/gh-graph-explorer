@@ -1,0 +1,27 @@
+[
+  {
+    "username": "user1",
+    "owner": "your-organization",
+    "repo": "your-repository"
+  },
+  {
+    "username": "user2", 
+    "owner": "your-organization",
+    "repo": "your-repository"
+  },
+  {
+    "username": "contributor1",
+    "owner": "another-org",
+    "repo": "another-repo"
+  },
+  {
+    "username": "contributor2",
+    "owner": "another-org", 
+    "repo": "another-repo"
+  },
+  {
+    "username": "maintainer1",
+    "owner": "third-org",
+    "repo": "third-repo"
+  }
+] 
