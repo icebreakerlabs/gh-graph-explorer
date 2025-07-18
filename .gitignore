@@ -1,10 +1,63 @@
+# Data files
 *.csv
-lib/
-__pycache__
-./graph-explorer/
-.env
-.csv
-old/*
-.DS_Store
-.ipynb_checkpoints/
 data/fulldata.json
+data/exports.jsonl
+data/*.jsonl
+
+# Generated analysis files
+notebooks/data/
+data/*_activity_*.csv
+data/*_analysis_*.csv
+data/*_config_*.json
+data/*_summary_*.json
+data/*_sna_metrics_*.csv
+data/*_network_edges_*.csv
+data/*_raw_activity_*.csv
+
+# Analysis results
+full_repo_activity_results.csv
+full_analysis_checkpoint.json
+repo_activity_analysis_*.csv
+repo_activity_summary_*.json
+
+# Python
+lib/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Old files
+old/*
+
+# Graph explorer
+./graph-explorer/
