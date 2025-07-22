@@ -3,6 +3,8 @@
 data/fulldata.json
 data/exports.jsonl
 data/*.jsonl
+data/crypto_analysis_*
+notebooks/crypto_analysis_*
 
 # Generated analysis files
 notebooks/data/
